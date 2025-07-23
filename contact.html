@@ -31,9 +31,7 @@
       <p>GitHub : <a class="contact-link" href="https://github.com/0xRevSec" target="_blank">github.com/0xRevSec</a></p>
     </div>
   </main>
-    <footer>
-        &copy; 2025 0xRevSec — Software, Security & Programming
-    </footer>
+<div id="footer-placeholder"></div>
     <script>
   // Quand la page est chargée, on va chercher nav.html
   document.addEventListener("DOMContentLoaded", function() {
@@ -43,6 +41,12 @@
         document.getElementById("nav-placeholder").innerHTML = html;
       })
       .catch(err => console.error("Erreur chargement nav :", err));
+    fetch("footer.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("footer-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement footer :", err));
   });
 </script>
 

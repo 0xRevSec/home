@@ -177,20 +177,28 @@
 
 </main>
 
-<footer>
-  &copy; 2025 0xRevSec — Software, Security & Programming
-</footer>
+<div id="footer-placeholder"></div>
 
-<script>
-  // Chargement dynamique du menu de navigation
-  document.addEventListener("DOMContentLoaded", function() {
-    fetch("nav.html")
-      .then(resp => resp.text())
-      .then(html => {
-        document.getElementById("nav-placeholder").innerHTML = html;
-      })
-      .catch(err => console.error("Erreur chargement nav :", err));
-  });
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Charger nav
+  fetch("nav.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("nav-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement nav :", err));
+
+  // Charger footer
+  fetch("footer.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("footer-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement footer :", err));
+});
+
+  
 </script>
 </body>
 </html>

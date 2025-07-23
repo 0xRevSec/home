@@ -122,21 +122,27 @@
       <p><strong>En cybersécurité, l'humain est souvent le point faible. Soyons malins, soyons prudents.</strong></p>
     </article>
   </main>
-
-    <footer>
-        &copy; 2025 0xRevSec — Software, Security & Programming
-    </footer>
+<div id="footer-placeholder"></div>
     <script>
-  // Quand la page est chargée, on va chercher nav.html
-  document.addEventListener("DOMContentLoaded", function() {
-    fetch("nav.html")
-      .then(resp => resp.text())
-      .then(html => {
-        document.getElementById("nav-placeholder").innerHTML = html;
-      })
-      .catch(err => console.error("Erreur chargement nav :", err));
-  });
-</script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Charger nav
+  fetch("nav.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("nav-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement nav :", err));
 
+  // Charger footer
+  fetch("footer.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("footer-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement footer :", err));
+});
+
+  
+</script>
 </body>
 </html>
