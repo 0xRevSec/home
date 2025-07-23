@@ -107,7 +107,7 @@ section.presentation {
   width: 100%;
 }
 
-.projects img {
+.article img {
   max-width: 100%; /* l'image ne dépasse jamais la largeur de son conteneur */
   height: auto;    /* pour garder les proportions */
   display: block;  /* supprime l'espace sous l'image */

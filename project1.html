@@ -15,7 +15,7 @@
   <div id="nav-placeholder"></div>
 
   <main>
-    <article class="projects">
+    <article class="article">
       <h1>Projet Modbus RTU entre deux ESP32 (UART‑TTL direct)</h1>
 
       <h2>1. Contexte &amp; Objectif</h2>
@@ -30,7 +30,7 @@
         <li><strong>ESP32 maître</strong> interroge l’esclave et affiche la valeur ou demande de pilotage le moteur</li>
         <li>Communication point‑à‑point, full‑duplex, via TX/RX croisés.</li>
         <li>Temps réel visible avec un analyseur logique ou console série.</li>
-      </ul><img src="image/synoptique_modbuspng.png" alt="Schéma de câblage Modbus" >
+<img src="image/synoptique_modbuspng.png" alt="Schéma de câblage Modbus" style="max-width: 100%; height: auto; display: block;">
 
       <br>  <br>
       <h2>2. Avantages &amp; Limites de l’UART‑TTL direct</h2>
@@ -187,19 +187,71 @@ void loop() {
         <li>Activez le décodage UART pour voir chaque octet en hex.</li>
       </ul>
 
-      <h2>10. Extensions possibles</h2>
-      <ul>
-        <li>Gestion d’erreurs &amp; timeouts.</li>
-        <li>Support de plusieurs registres &amp; fonctions.</li>
-        <li>Migration vers RS‑485 pour multi‑drop.</li>
-        <li>Intégration dans un réseau supervisé (MQTT, OPC UA…).</li>
-      </ul>
+ <h2>10. Extensions possibles</h2>
 
-      <p>
-        Ce guide complet vous permet de déployer un échange Modbus RTU entre deux ESP32 par liaison UART‑TTL,  
-        tout en bénéficiant d’un code clair, maintenable et d’outils de debug efficaces. <br><br>
-        Lien du projet :  <a href="https://github.com/0xRevSec/Modbus_RTU.git" ><strong>https://github.com/0xRevSec/Modbus_RTU.git</strong></a>
-      </p>
+<h3>1. Gestion d’erreurs &amp; timeouts</h3>
+<p>
+  Dans une communication Modbus, il est essentiel de détecter et gérer les erreurs comme les trames corrompues, les adresses non reconnues, ou l’absence de réponse d’un esclave.  
+  Les timeouts (délai d’attente) permettent de ne pas rester bloqué si l’esclave ne répond pas. Cela rend la communication plus robuste et fiable.
+</p>
+
+<h3>2. Support de plusieurs registres &amp; fonctions</h3>
+<p>
+  Le protocole Modbus propose plusieurs fonctions (lecture/écriture de registres, coils, etc.).  
+  Étendre le code pour gérer plusieurs registres et fonctions permet d’échanger plus de types de données, piloter plusieurs équipements, ou avoir une supervision plus complète.
+</p>
+
+<h3>3. Migration vers RS‑485 pour multi‑drop</h3>
+<p>
+  RS‑485 permet de connecter plusieurs esclaves (plus de 2) sur un même bus physique (multi-drop).  
+  Cela permet de déployer un réseau Modbus industriel avec plusieurs équipements, sur de longues distances et dans des environnements bruyants grâce à la transmission différentielle.
+</p>
+
+<h3>4. Intégration dans un réseau supervisé (MQTT, OPC UA…)</h3>
+<p>
+  Ces protocoles modernes (MQTT, OPC UA) permettent de connecter les automates Modbus à des systèmes de supervision et IoT plus larges, facilitant la collecte de données, la gestion à distance, et l’intégration dans des architectures Cloud ou industrielles.
+</p>
+
+<h2>Projeter d’essayer de hacker le système</h2>
+<p>
+  Ce projet peut aussi servir de base pour comprendre comment un système Modbus RTU peut être attaqué ou piraté :
+</p>
+<ul>
+  <li>Injection de trames malveillantes, falsification de données</li>
+  <li>Attaques par déni de service (bloquer la communication)</li>
+  <li>Usurpation d’identité (maître ou esclave)</li>
+  <li>Analyse des trames pour découvrir des vulnérabilités</li>
+</ul>
+<p>
+  Comprendre ces risques permet d’améliorer la sécurité des systèmes industriels.
+</p>
+
+<h2>Différence avec le vrai Modbus RS‑485 industriel</h2>
+
+<h3>Matériel :</h3>
+<p>
+  Ici, on utilise une liaison UART‑TTL directe (câbles Dupont entre ESP32), ce qui limite la distance (≤5 m) et les nœuds (2 max).<br>
+  Le vrai Modbus industriel utilise RS‑485, un bus différentiel robuste, permettant des distances jusqu’à 1200 m et plusieurs esclaves sur un même bus (multi-drop).
+</p>
+
+<h3>Robustesse :</h3>
+<p>
+  Le RS‑485 est conçu pour résister au bruit électrique industriel, grâce à la transmission différentielle.<br>
+  UART-TTL direct est plus sensible au bruit, moins fiable dans un vrai environnement industriel.
+</p>
+
+<h3>Topologie :</h3>
+<p>
+  UART-TTL : point-à-point (maître ↔ esclave unique).<br>
+  RS‑485 : multi-drop (un maître, plusieurs esclaves sur le même bus).
+</p>
+
+<h3>Protocoles et timing :</h3>
+<p>
+  Le protocole Modbus RTU reste identique sur UART-TTL ou RS‑485, les trames, fonctions et timing ne changent pas.<br>
+  Cependant, la gestion matérielle du bus (activation/désactivation des émetteurs via DE/RE sur RS‑485) est spécifique à RS‑485.
+</p>
+
     </article>
   </main>
 
