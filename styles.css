@@ -12,13 +12,37 @@ header {
   justify-content: center; /* centre horizontalement */
   gap: 2rem; /* espace entre logo et menu */
   background-color: #004d99;
-  color: white;
+  color: rgb(255, 255, 255);
   padding: 0.5rem 2rem;
 }
+#banner {
+  background-image: url('image/ban3.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 200px;
+}
+
+#sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  background-color: #004d99;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
+}
+
+/* Logo */
 #logo {
-  height: 150px; /* hauteur ajustable */
+  height: auto;
+  max-height: 80px;
   width: auto;
 }
+
+
 
 nav {
   display: flex;

@@ -1,38 +1,196 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Règles de Base - Sécurité & Ingénierie Sociale</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>0xRevSec – Industrial Instrumentation, Automatisme & Systèmes de Sécurité</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <a href="index.html">
-      <img src="logo.png" alt="Logo" id="logo" width="10" height="150">
-    </a>
-  <div id="nav-placeholder"></div>
-  </header>
+<div id="nav-placeholder"></div>
 
-  <main>
+<main>
+  <!-- Article 1 : Instrumentation & Automatisme Industriels -->
+  <article class="article">
+    <h2>Instrumentation & Automatisme Industriels : Fondamentaux et Pratiques</h2>
 
+    <p>
+      Dans l’industrie moderne, l’instrumentation et l’automatisme jouent un rôle clé pour optimiser la production, garantir la qualité et réduire les coûts. Ils permettent de <strong>mesurer</strong>, <strong>contrôler</strong> et <strong>réguler</strong> en temps réel tous les paramètres d’un procédé industriel.
+    </p>
 
-  </main>
+    <h3>1. Qu’est‑ce que l’instrumentation ?</h3>
+    <ul>
+      <li><strong>Capteurs</strong> : conversion d’un phénomène physique (pression, température, débit, niveau) en un signal électrique ou numérique.</li>
+      <li><strong>Transmetteurs</strong> : conditionnent et transmettent le signal capteur vers un système de contrôle.</li>
+      <li><strong>Actionneurs</strong> : moteurs, vannes, pompes qui agissent sur le procédé selon les consignes reçues.</li>
+    </ul>
 
-    <footer>
-        &copy; 2025 0xRevSec — Software, Security & Programming
-    </footer>
-    <script>
-  // Quand la page est chargée, on va chercher nav.html
+    <h3>2. Rôle de l’automatisme</h3>
+    <p>
+      L’automatisme regroupe les <strong>automates programmables industriels (API)</strong>, les <strong>variantes de contrôle</strong> (boucles PID, logique séquentielle) et les <strong>SCADA</strong> (Supervisory Control And Data Acquisition). Il permet de piloter et de surveiller l’ensemble du process.
+    </p>
+
+    <h4>a. Automates (PLC)</h4>
+    <ul>
+      <li>Exécution de programmes en logique ladder, Grafcet ou blocs fonctionnels.</li>
+      <li>Gestion d’E/S numériques et analogiques.</li>
+      <li>Communication avec d’autres machines via Modbus, Profibus, EtherCAT…</li>
+    </ul>
+
+    <h4>b. SCADA & HMI</h4>
+    <ul>
+      <li><strong>SCADA</strong> : collecte, historisation et supervision des données.</li>
+      <li><strong>HMI</strong> : interface opérateur pour visualisation et commande locale.</li>
+    </ul>
+
+    <h3>3. Architectures typiques</h3>
+    <ol>
+      <li><strong>Hiérarchie 3 niveaux</strong> : Capteurs/Actionneurs → Automate → SCADA/ERP.</li>
+      <li><strong>Réseaux industriels</strong> : bus de terrain (Profibus, Modbus RTU/TCP) et Ethernet temps‑réel (Profinet, EtherCAT).</li>
+    </ol>
+
+    <h3>4. Exemples d’applications</h3>
+    <ul>
+      <li><strong>Chaînes de production</strong> : tri, pesage, conditionnement automatisés.</li>
+      <li><strong>Traitement des eaux</strong> : régulation de pH, dosage de produits chimiques.</li>
+      <li><strong>Process chimiques</strong> : contrôle de température, pression et débit dans les réacteurs.</li>
+    </ul>
+
+    <h3>5. Implémentation rapide (schéma générique)</h3>
+    <pre><code>
++------------+        +----------+        +--------+
+| Capteurs   | ──>    | Automate | ──>    | Actionneur
++------------+        +----------+        +--------+
+      ↑                     ↓                  ↑
+   Mesure              Logique             Effet
+    Physique           de Contrôle         Mécanique
+    </code></pre>
+
+    <p>
+      Pour démarrer, identifiez d’abord vos variables de process, choisissez vos capteurs puis programmez votre automate en boucle fermée (PID) ou logique séquentielle.
+    </p>
+  </article>
+
+  <!-- Article 2 : Systèmes de Sécurité Industriels -->
+  <article class="article">
+    <h2>Systèmes de Sécurité Industriels : Prévention et Protection</h2>
+
+    <p>
+      Les systèmes de sécurité industriels regroupent l’ensemble des dispositifs visant à <strong>prévenir</strong> les incidents, <strong>protéger</strong> le personnel et <strong>assurer</strong> l’intégrité des installations. Ils sont régis par des normes comme la <em>IEC 61508</em> et la <em>IEC 61511</em>.
+    </p>
+
+    <h3>1. Niveaux de sécurité fonctionnelle (SIL)</h3>
+    <ul>
+      <li><strong>SIL 1 à SIL 4</strong> : de la simple alarme au système redondant haute disponibilité.</li>
+      <li>Chaque niveau impose des <strong>architectures matérielles</strong> et des <strong>procédures de vérification</strong> renforcées.</li>
+    </ul>
+
+    <h3>2. Composants clés</h3>
+    <ul>
+      <li><strong>Capteurs de sécurité</strong> : barrières immatérielles, scanners laser, interrupteurs de position.</li>
+      <li><strong>Contrôleurs de sécurité</strong> : Safety PLC dédiés (Pilz, Siemens S7‐FailSafe).</li>
+      <li><strong>Actionneurs de coupure</strong> : vannes de sectionnement, arrêts d’urgence, relais de sécurité.</li>
+    </ul>
+
+    <h3>3. Architecture typique</h3>
+    <pre><code>
+    [ Zone Danger ] 
+         ↓  
+    +---------------------+
+    |  Capteur Sécurité   |───> Safety PLC ──> Actionneurs de Coupure
+    +---------------------+
+    </code></pre>
+
+    <h3>4. Cycle de vie sécurité</h3>
+    <ol>
+      <li>Analyse des risques</li>
+      <li>Spécification des exigences fonctionnelles</li>
+      <li>Conception et implémentation</li>
+      <li>Validation & tests (FAT/SAT)</li>
+      <li>Maintenance et recalibrage périodique</li>
+    </ol>
+
+    <h3>5. Exemples</h3>
+    <ul>
+      <li>
+        <strong>Protection de presse</strong> : rideau lumineux + arceau de sécurité + arrêt d’urgence.
+      </li>
+      <li>
+        <strong>Machine de découpe</strong> : scanners laser et contrôleur SIL 3 pour garantir l’arrêt en cas d’intrusion.
+      </li>
+    </ul>
+  </article>
+
+  <!-- Article 3 : Systèmes de Contrôle d'Accès, Vidéo & Intrusion -->
+  <article class="article">
+    <h2>Systèmes de Contrôle d’Accès, Vidéo & Intrusion : Une Extension de la Sécurité</h2>
+
+    <p>
+      Les systèmes de contrôle d’accès, vidéo‐surveillance et détection d’intrusion font partie intégrante des <strong>systèmes de sécurité</strong> globalisés d’un site industriel, tertiaire ou résidentiel. On les regroupe parfois sous l’acronyme <strong>CCTV & ACS</strong> (Closed‑Circuit TV & Access Control Systems).
+    </p>
+
+    <h3>1. Contrôle d’accès (ACS)</h3>
+    <ul>
+      <li><strong>Lecteurs de badges</strong>, claviers à code, biométrie (empreinte, visage).</li>
+      <li><strong>Contrôleur central</strong> gère les droits et journalise chaque passage.</li>
+      <li>Intégration possible avec les systèmes de sécurité incendie.</li>
+    </ul>
+
+    <h3>2. Vidéo‐surveillance (CCTV/IP)</h3>
+    <ul>
+      <li><strong>Caméras analogiques</strong> ou <strong>IP</strong> (Résolution HD, infrarouge).</li>
+      <li><strong>Enregistreurs DVR/NVR</strong> pour stockage local ou Cloud.</li>
+      <li>Analyse vidéo (détection de mouvement, reconnaissance faciale).</li>
+    </ul>
+
+    <h3>3. Détection d’intrusion</h3>
+    <ul>
+      <li><strong>Détecteurs volumétriques</strong> (PIR, micro-ondes).</li>
+      <li><strong>Barrières infrarouges</strong> extérieures.</li>
+      <li><strong>Sirènes</strong> et alertes automatisées (SMS, email, GTC).</li>
+    </ul>
+
+    <h3>4. Architecture intégrée</h3>
+    <pre><code>
+    [ Entrée Site ] ──> Badge / Biométrie ─┐
+                                          ├─> Contrôleur ACS ── Journal & Alarme
+    [ Périmètre    ] ──> Barrière IR      ┘
+                                          
+    [ Caméras CCTV ] ──> NVR/DVR ──> Postes de surveillance
+                              ↓
+                        Analyse vidéo
+    </code></pre>
+
+    <h3>5. Nom de ces systèmes</h3>
+    <p>
+      On les considère généralement comme une sous‑catégorie des <strong>systèmes de sécurité</strong>. On parle aussi de :
+    </p>
+    <ul>
+      <li><strong>SSP</strong> : Systèmes de Sécurité Privée (regroupe intrusion, vidéosurveillance, contrôle d’accès).</li>
+      <li><strong>CCTV & ACS</strong> : lorsqu’on insiste sur la vidéo et l’accès.</li>
+    </ul>
+
+    <p>
+      En conclusion, le contrôle d’accès, la vidéo et la détection d’intrusion sont bien partie prenante des systèmes de sécurité globaux, sous l’ombrelle « SSP » ou « Systèmes de Sécurité ».
+    </p>
+  </article>
+
+</main>
+
+<footer>
+  &copy; 2025 0xRevSec — Software, Security & Programming
+</footer>
+
+<script>
+  // Chargement dynamique du menu de navigation
   document.addEventListener("DOMContentLoaded", function() {
     fetch("nav.html")
       .then(resp => resp.text())
       .then(html => {
         document.getElementById("nav-placeholder").innerHTML = html;
       })
-      .catch(err => console.error("Erreur chargement nav :", err));
+      .catch(err => console.error("Erreur chargement nav :", err));
   });
 </script>
-
 </body>
 </html>
