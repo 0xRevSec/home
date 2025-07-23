@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projet Modbus RTU entre deux ESP32 – Version TTL Direct</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Highlight.js pour coloration syntaxique -->
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <main>
+    <article class="article">
+      <h1>Projet Modbus RTU entre deux ESP32 (UART‑TTL direct)</h1>
+
+      <h2>1. Contexte &amp; Objectif</h2>
+      <p>
+        Dans l’automatisation industrielle, Modbus RTU est un protocole populaire pour échanger des données entre un maître et plusieurs esclaves via une ligne série.  
+        Ici, nous montrons comment réaliser un échange Modbus RTU <strong>sans module RS‑485</strong>, en liaison directe UART‑TTL entre deux ESP32, pour lire la température d’une sonde DHT22 et piloter un moteur DC. La commande utilisateur se fera depuis un PC sur interface 
+        graphique (supervision). Le esp32 maitre aura un mini serveur HTTP et pourra communiquer avec la supervision en WIFI.
+        <br>Ce projet a pour but de comprendre en bas niveau ce que nous comprennons en surface.
+      </p>
+      <ul>
+        <li><strong>ESP32 esclave</strong> lit la température, active le moteur et répond aux requêtes.</li>
+        <li><strong>ESP32 maître</strong> interroge l’esclave et affiche la valeur ou demande de pilotage le moteur</li>
+        <li>Communication point‑à‑point, full‑duplex, via TX/RX croisés.</li>
+        <li>Temps réel visible avec un analyseur logique ou console série.</li>
+      </ul><img src="svg/sy.drawio.svg" alt="Schéma de câblage Modbus" width="600">
+
+      <br>  <br>
+      <h2>2. Avantages &amp; Limites de l’UART‑TTL direct</h2>
+      <table>
+        <thead>
+          <tr><th>Critère</th><th>UART‑TTL direct</th><th>RS‑485 (bus différentiel)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Distance</td><td>≤ 5 m</td><td>Jusqu’à 1 200 m</td></tr>
+          <tr><td>Nombre de nœuds</td><td>2 uniquement</td><td>Plusieurs (multi‑drop)</td></tr>
+          <tr><td>Complexité</td><td>Très simple</td><td>Modules RS‑485 + DE/RE</td></tr>
+          <tr><td>Robustesse</td><td>Faible (bruit)</td><td>Haute (différentiel)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>3. Matériel requis</h2>
+      <ul>
+        <li>2 × ESP32 (<em>n’importe quel modèle</em>)</li>
+        <li>1 × Sonde DHT22 (GPIO‑TTL)</li>
+        <li>Câbles Dupont pour TX/RX et GND</li>
+        <li>Ordinateur ou analyseur logique (Saleae, PulseView…) pour monitorer</li>
+      </ul>
+
+      <h2>4. Câblage &amp; Brochage</h2>
+      <pre><code>
+ESP32 Maître            ESP32 Esclave      Sonde DHT22
+-------------           -------------      ------------
+TX1 (GPIO 17) ——— RX1 (GPIO 16)
+RX1 (GPIO 16) ——— TX1 (GPIO 17)
+GND         —————— GND
+DHT22 DATA ————— GPIO 4 (esclave)
+VCC (3.3 V) ————— VCC (sonde)
+      </code></pre>
+
+      <h2>5. Protocole Modbus RTU – Rappels temporels</h2>
+      <ul>
+        <li><strong>Baudrate :</strong> 9600 bauds</li>
+        <li><strong>Format :</strong> 8 N 1 → 1 start bit + 8 data bits + 1 stop bit = 10 bits/octet</li>
+        <li><strong>Durée d’un bit</strong> ≃ 1 / 9600 ≃ 104 µs</li>
+        <li><strong>Durée d’un octet</strong> ≃ 10 × 104 µs ≃ 1,04 ms</li>
+        <li><strong>Silence inter‑trames</strong> ≥ 3,5 × 1,04 ms ≃ 3,6 ms</li>
+      </ul>
+
+      <h2>6. Trame de requête / réponse</h2>
+      <h3>Requête maître → esclave</h3>
+      <pre><code>
+Octet  Hex   Description
+0      0x01  Adresse esclave (ID=1)
+1      0x03  Fonction Read Holding Register
+2      0x00  Registre haut (0x0001)
+3      0x01  Registre bas
+4      0x00  Nombre de regs haut
+5      0x01  Nombre de regs bas (1)
+6      CRClo  CRC low
+7      CRChi  CRC high
+      </code></pre>
+
+      <h3>Réponse esclave → maître</h3>
+      <pre><code>
+Octet  Hex   Description
+0      0x01  Adresse esclave
+1      0x03  Fonction
+2      0x02  Nombre d’octets (2)
+3      Hi    Température haut
+4      Lo    Température bas (×10)
+5      CRClo CRC low
+6      CRChi CRC high
+      </code></pre>
+
+      <h2>7. Code ESP32 Esclave (Modbus + DHT22)</h2>
+      <pre><code class="language-cpp">
+// Inclure la librairie DHT
+#include &lt;DHT.h&gt;
+#define DHTPIN 4
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+HardwareSerial modbus(1);
+
+uint16_t calcCRC(const uint8_t* d, size_t n) {
+  uint16_t crc = 0xFFFF;
+  for (size_t i = 0; i < n; ++i) {
+    crc ^= d[i];
+    for (int b = 0; b < 8; ++b)
+      crc = (crc & 1) ? (crc >> 1) ^ 0xA001 : crc >> 1;
+  }
+  return crc;
+}
+
+void setup() {
+  modbus.begin(9600, SERIAL_8N1, 16, 17);
+  dht.begin();
+}
+
+void loop() {
+  if (modbus.available() >= 8) {
+    uint8_t req[8];
+    modbus.readBytes(req, 8);
+    uint16_t crcReq = (req[7] << 8) | req[6];
+    if (req[0] == 1 && req[1] == 3 && crcReq == calcCRC(req, 6)) {
+      int reg = (req[2] << 8) | req[3];
+      if (reg == 1) {
+        float t = dht.readTemperature();
+        int16_t v = int(t * 10);
+        uint8_t rsp[7] = {
+          1, 3, 2, uint8_t(v >> 8), uint8_t(v & 0xFF), 0, 0
+        };
+        uint16_t crc = calcCRC(rsp, 5);
+        rsp[5] = crc & 0xFF; rsp[6] = crc >> 8;
+        modbus.write(rsp, 7);
+        modbus.flush();
+      }
+    }
+  }
+}
+      </code></pre>
+
+      <h2>8. Code ESP32 Maître (Modbus Requête)</h2>
+      <pre><code class="language-cpp">
+HardwareSerial modbus(2);
+
+uint16_t calcCRC(const uint8_t* d, size_t n); // même algorithme
+
+void setup() {
+  modbus.begin(9600, SERIAL_8N1, 3, 1);
+  Serial.begin(115200);
+}
+
+void loop() {
+  uint8_t req[8] = {1,3,0,1,0,1,0,0};
+  uint16_t c = calcCRC(req, 6);
+  req[6] = c & 0xFF; req[7] = c >> 8;
+
+  modbus.write(req, 8);
+  modbus.flush();
+
+  delay(100);
+  if (modbus.available() >= 7) {
+    uint8_t r[7];
+    modbus.readBytes(r, 7);
+    int16_t v = (r[3] << 8) | r[4];
+    Serial.println(v / 10.0);
+  }
+  delay(2000);
+}
+      </code></pre>
+
+      <h2>9. Surveillance &amp; Analyseur logique</h2>
+      <ul>
+        <li>Connectez l’analyseur sur TX/RX (ESP32↔ESP32) et GND.</li>
+        <li>Réglez 9600 bauds, 8N1 dans le logiciel.</li>
+        <li>Observez start bit, 8 data bits, stop bit.</li>
+        <li>Identifiez la pause > 3,5 octets pour délimiter les trames.</li>
+        <li>Activez le décodage UART pour voir chaque octet en hex.</li>
+      </ul>
+
+      <h2>10. Extensions possibles</h2>
+      <ul>
+        <li>Gestion d’erreurs &amp; timeouts.</li>
+        <li>Support de plusieurs registres &amp; fonctions.</li>
+        <li>Migration vers RS‑485 pour multi‑drop.</li>
+        <li>Intégration dans un réseau supervisé (MQTT, OPC UA…).</li>
+      </ul>
+
+      <p>
+        Ce guide complet vous permet de déployer un échange Modbus RTU entre deux ESP32 par liaison UART‑TTL,  
+        tout en bénéficiant d’un code clair, maintenable et d’outils de debug efficaces. <br><br>
+        Lien du projet :  <a href="https://github.com/0xRevSec/Modbus_RTU.git" ><strong>https://github.com/0xRevSec/Modbus_RTU.git</strong></a>
+      </p>
+    </article>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      fetch("nav.html")
+        .then(r => r.text())
+        .then(html => document.getElementById("nav-placeholder").innerHTML = html);
+      fetch("footer.html")
+        .then(r => r.text())
+        .then(html => document.getElementById("footer-placeholder").innerHTML = html);
+    });
+  </script>
+</body>
+</html>

@@ -194,6 +194,33 @@ input, textarea {
     a.contact-link:hover {
       color: #ff6600;
     }
+pre {
+  background: #f6f8fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1em;
+  overflow: auto;
+  position: relative;
+}
+
+/* Numérotation des lignes */
+pre.linenums {
+  counter-reset: linenumber;
+}
+pre.linenums code > span {
+  display: block;
+  padding-left: 2em;
+  text-indent: -2em;
+}
+pre.linenums code > span::before {
+  counter-increment: linenumber;
+  content: counter(linenumber);
+  display: inline-block;
+  width: 1.5em;
+  margin-right: 0.5em;
+  color: #999;
+  text-align: right;
+}
 
 @media (max-width: 600px) {
   header {
