@@ -11,212 +11,177 @@
   <a href="index.html">
     <img src="logo.png" alt="Company Logo" id="logo" width="10" height="150">
   </a>
-  <nav>
-    <a href="projects.html">Projects</a>
-    <a href="tools.html">Toolbox</a>
-    <a href="tuto.html">Tutorials</a>
-    <a href="articles.html">Articles</a>
-    <a href="contact.html">Contact</a>
-  </nav>
+  <div id="nav-placeholder"></div>
 </header>
 
 <main>
-  <article class="article">
-    <canvas id="bitCanvas" width="300" height="80"></canvas>
-    <script>
-      const bits = [1,0,1,1,0];
-      const ctx = document.getElementById('bitCanvas').getContext('2d');
-      const width = ctx.canvas.width / bits.length;
-      const midY = ctx.canvas.height / 2;
-      ctx.strokeStyle = '#004d99';
-      ctx.lineWidth = 4;
+ <article class="article">
+  <h2>Les Protocoles de Communication : Guide pour Débutants et Professionnels</h2>
 
-      ctx.beginPath();
-      ctx.moveTo(0, midY - (bits[0] ? 20 : -20));
-      bits.forEach((b, i) => {
-        const xStart = i * width;
-        ctx.lineTo(xStart + width, midY - (b ? 20 : -20));
-        if (i < bits.length - 1) {
-          const nextB = bits[i+1];
-          ctx.lineTo(xStart + width, midY - (nextB ? 20 : -20));
-        }
-      });
-      ctx.stroke();
-    </script>
-
-    <h1>Les Protocoles de Communication : Guide pour Débutants</h1>
-
-    <p>
-      Dans notre monde connecté, des milliards d'appareils, machines et logiciels échangent chaque seconde des données. 
-      Mais comment garantir que ces échanges soient compréhensibles, fiables et sécurisés ? La réponse se trouve dans les <strong>protocoles de communication</strong>.
-    </p>
-
-    <h2>1. Qu’est‑ce qu’un protocole ?</h2>
-    <p>
-      Un protocole est un ensemble de règles et de conventions définissant :
-    </p>
-    <ul>
-      <li>Le format des données (comment on structure un message),</li>
-      <li>La façon de les envoyer (taux de transfert, mode de connexion),</li>
-      <li>Les séquences de dialogue (qui parle quand, qui répond),</li>
-      <li>La gestion des erreurs (détection, correction, reprise).</li>
-    </ul>
-    <p>
-      On peut comparer un protocole à une langue : pour communiquer, il faut se mettre d’accord sur la grammaire, le vocabulaire et l’ordre des mots.
-    </p>
-
-    <h2>2. Pourquoi les protocoles sont‑ils indispensables ?</h2>
-    <p>
-      Sans protocole, chaque appareil parlerait “à sa sauce” : messages incompréhensibles, collisions, perte de données, insécurité…  
-      Les protocoles garantissent :
-    </p>
-    <ul>
-      <li><strong>Interopérabilité</strong> – appareils de marques différentes peuvent échanger.</li>
-      <li><strong>Fiabilité</strong> – détection et correction des erreurs.</li>
-      <li><strong>Performance</strong> – gestion des priorités, optimisation du débit.</li>
-      <li><strong>Sécurité</strong> – chiffrement, authentification.</li>
-    </ul>
-
-    <h2>3. Panorama des protocoles industriels</h2>
-    <p>
-      Dans l’<strong>industrie</strong>, on se trouve souvent dans des environnements contraignants : température extrême, interférences électromagnétiques, câbles très longs. 
-      Les protocoles doivent donc être robustes et temps-réel.
-    </p>
-    <ul>
-      <li><strong>Modbus</strong> (RTU / TCP) : simplicité, maître‑esclave, largement utilisé pour piloter automates et capteurs.</li>
-      <li><strong>Profibus</strong> : bus de terrain à haut débit, adapté aux process industriels complexes.</li>
-      <li><strong>Profinet</strong> : version Ethernet temps-réel de Profibus, basée sur TCP/IP ou directement sur Ethernet selon le profil (RT/IRT).</li>
-      <li><strong>CAN bus</strong> : conçu pour l’automobile, bus multi‑maître tolérant aux pannes.</li>
-      <li><strong>EtherCAT</strong> : bas latence, synchronisation de l’horloge pour les chaînes robotisées.</li>
-    </ul>
-    <p>
-      Chacun de ces protocoles définit ses propres trames, ses délais, et ses méthodes de détection d’erreur (CRC, checksums…).
-    </p>
-
-    <h2>4. Panorama des protocoles informatiques</h2>
-    <p>
-      Dans l’<strong>IT</strong>, on gère des réseaux locaux ou Internet, des applications web, des objets connectés…
-      Ces protocoles sont souvent bâtis sur des piles standardisées comme TCP/IP ou TLS.
-    </p>
-    <ul>
-      <li><strong>TCP/IP</strong> : pile de base d’Internet, garantissant la livraison (TCP) ou l’ultra‑rapidité sans garantie (UDP).</li>
-      <li><strong>HTTP / HTTPS</strong> : sur TCP, pour naviguer sur le web, envoyer formulaires, récupérer API.</li>
-      <li><strong>MQTT</strong> : léger, pub/sub, idéal pour l’IoT.</li>
-      <li><strong>WebSocket</strong> : connexion persistante full‑duplex entre navigateur et serveur.</li>
-    </ul>
-    <p>
-      Là aussi, chaque protocole définit un en‑tête, un corps de message et le traitement des pannes (retransmissions, ACK/NACK). Ces protocoles s'appuient souvent sur une pile logicielle modulaire (ex. OSI ou TCP/IP), abstraite du matériel.
-    </p>
-
-  <h2>5. Décortiquer un message : structure en couches (modèle OSI)</h2>
   <p>
-    Pour organiser la complexité, on utilise souvent le <strong>modèle OSI</strong> en 7 couches :
+    Dans notre monde connecté, des milliards d'appareils, machines et logiciels échangent chaque seconde des données. Mais comment garantir que ces échanges soient compréhensibles, fiables et sécurisés ? La réponse se trouve dans les <strong>protocoles de communication</strong>.
   </p>
+
+  <h3>1. Qu’est‑ce qu’un protocole ?</h3>
+  <p>
+    Un protocole est un ensemble de règles et de conventions définissant :
+  </p>
+  <ul>
+    <li>Le <strong>format des données</strong> (structure d’un message),</li>
+    <li>La <strong>manière de les envoyer</strong> (taux de transfert, mode de connexion),</li>
+    <li>Les <strong>séquences de dialogue</strong> (qui parle quand, qui répond),</li>
+    <li>La <strong>gestion des erreurs</strong> (détection, correction, reprise).</li>
+  </ul>
+  <p>
+    On peut comparer un protocole à une langue : il faut se mettre d’accord sur la grammaire, le vocabulaire et l’ordre des mots.
+  </p>
+
+  <h3>2. Pourquoi les protocoles sont‑ils indispensables ?</h3>
+  <p>
+    Sans protocole, chaque appareil parlerait « à sa sauce » : messages incompréhensibles, collisions, perte de données, risques de sécurité. Les protocoles garantissent :
+  </p>
+  <ul>
+    <li><strong>Interopérabilité</strong> : appareils de marques différentes peuvent échanger.</li>
+    <li><strong>Fiabilité</strong> : détection et correction d’erreurs (CRC, checksum, ACK/NACK).</li>
+    <li><strong>Performance</strong> : gestion des priorités, optimisation du débit et de la latence.</li>
+    <li><strong>Sécurité</strong> : chiffrement, authentification, contrôle d’accès.</li>
+  </ul>
+
+  <h3>3. Architectures et modèles de couches</h3>
+
+  <h4>Modèle OSI (7 couches)</h4>
   <ol>
-    <li><strong>Physique</strong> : bits transmis (câble, ondes).</li>
-    <li><strong>Liaison</strong> : trames, contrôle de flux, détection d’erreur (Ethernet, CAN).</li>
-    <li><strong>Réseau</strong> : adressage, routage (IP).</li>
-    <li><strong>Transport</strong> : fiabilité, retransmission (TCP, UDP).</li>
-    <li><strong>Session</strong> : ouverture/fermeture de session.</li>
-    <li><strong>Présentation</strong> : format, chiffrement (SSL/TLS).</li>
-    <li><strong>Application</strong> : protocole utilisateur (HTTP, Modbus, MQTT).</li>
+    <li><strong>Physique</strong> : bits transmis sur le support (câble, fibre, ondes).</li>
+    <li><strong>Liaison</strong> : trames, adresses MAC, détection/correction d’erreurs (Ethernet, CAN bus).</li>
+    <li><strong>Réseau</strong> : datagrammes, adressage IP, routage (IP).</li>
+    <li><strong>Transport</strong> : segmentation, ports, fiabilité (TCP, UDP).</li>
+    <li><strong>Session</strong> : gestion des sessions, reprise de connexion.</li>
+    <li><strong>Présentation</strong> : format des données, chiffrement (TLS/SSL).</li>
+    <li><strong>Application</strong> : protocoles utilisateurs (HTTP, Modbus, MQTT).</li>
   </ol>
-  <p>
-    Chaque couche encapsule les données de la couche supérieure dans ses propres en‑têtes/pieds de trame.
-  </p>
 
-  <h3>Stack TCP/IP vs piles industrielles</h3>
-  <p>
-    Dans les systèmes informatiques modernes, on utilise souvent une pile simplifiée (TCP/IP) : <strong>Liaison → Internet (IP) → Transport (TCP/UDP) → Application</strong>.
-  </p>
-  <p>
-    En revanche, les <strong>piles industrielles</strong> comme <em>Profinet</em> n'utilisent pas toujours TCP/IP classique. Elles optimisent certaines couches pour le <strong>temps-réel</strong>.
-  </p>
-
-  <h3>Profinet RT / IRT</h3>
+  <h4>Modèle TCP/IP (4 couches)</h4>
   <ul>
-    <li><strong>RT (Real Time)</strong> : communication directe sur Ethernet sans passer par TCP, pour des échanges rapides (< 10 ms).</li>
-    <li><strong>IRT (Isochronous Real Time)</strong> : synchronisation stricte via horloge commune, utilisé pour la robotique (< 1 ms de jitter).</li>
+    <li><strong>Application</strong> (OSI 7–5)</li>
+    <li><strong>Transport</strong> (OSI 4)</li>
+    <li><strong>Internet</strong> (OSI 3)</li>
+    <li><strong>Accès réseau</strong> (OSI 2–1)</li>
   </ul>
-  <p>
-    Ces piles sont dites <strong>“collapsées”</strong> ou “optimisées” : certaines couches sont fusionnées ou court-circuitées pour limiter la latence.
-  </p>
 
-  <h3>Zoom : le protocole HART</h3>
+  <h3>4. Panorama des protocoles industriels</h3>
   <p>
-    Le protocole <strong>HART</strong> est un cas à part, car il combine un signal <strong>analogique 4–20 mA</strong> (mesure continue) avec une <strong>superposition numérique</strong> modulée en fréquence (FSK).
-  </p>
-  <p>
-    Cela permet d'interroger un capteur (ex. température) et de modifier sa configuration sans couper la boucle de mesure.
+    En milieu industriel, les contraintes sont fortes (environnement, temps‐réel, tolérance aux pannes). On distingue deux grandes topologies :
   </p>
   <ul>
-    <li>Modulation FSK entre 1200 Hz et 2200 Hz</li>
-    <li>Dialogue maître/esclave, un seul esclave actif à la fois</li>
-    <li>Trames HART structurées avec adresse, commande, données, checksum</li>
+    <li><strong>Bus partagé</strong> : tous les nœuds écoutent le même média (ex. Modbus RTU, CAN bus).</li>
+    <li><strong>Liaison point à point</strong> : connexion exclusive entre deux équipements (ex. HART, PROFIBUS DP point-to-point).</li>
   </ul>
-  <pre>
-Trame HART :
-[Préambule][Adresse][Commande][#Octets][Données][Checksum]
-  </pre>
+
+  <h4>Quelques protocoles clés</h4>
+  <ul>
+    <li>
+      <strong>Modbus RTU/TCP</strong> : architecture maître‑esclave, trames simples, CRC 16‑bits.  
+      <em>Lecture d’un registre</em> :  
+      <code>[Adresse][Fonction 3][#Reg][AddrHi][AddrLo][#RegsHi][#RegsLo][CRC]</code>
+    </li>
+    <li>
+      <strong>Profibus DP</strong> : bus de terrain haute vitesse, cycle maître‑esclave.  
+      Modes point-à-point possibles pour la configuration.
+    </li>
+    <li>
+      <strong>PROFINET RT/IRT</strong> : versions Ethernet temps‑réel ;  
+      RT (Real Time) sans TCP, IRT (Isochronous RT) avec synchronisation d’horloge (< 1 ms jitter).
+    </li>
+    <li>
+      <strong>CAN bus</strong> : bus multi‑maître, priorisation par ID, CRC 15‑bits, très tolérant aux pannes.
+    </li>
+    <li>
+      <strong>EtherCAT</strong> : maître‑esclave en ligne, latence minimale, découpage de trame en sous-trames.
+    </li>
+    <li>
+      <strong>HART</strong> : superposition FSK 1200/2200 Hz sur 4–20 mA, interrogation maître‑esclave, registre unique par esclave.
+    </li>
+  </ul>
+
+  <h3>5. Panorama des protocoles IT & IoT</h3>
+  <ul>
+    <li><strong>TCP/IP</strong> : base d’Internet (TCP fiable, UDP « best‑effort »).</li>
+    <li><strong>HTTP/HTTPS</strong> : web et APIs, chiffrement TLS.</li>
+    <li><strong>MQTT</strong> : pub/sub léger, qualité de service configurable (0/1/2), idéal IoT.</li>
+    <li><strong>WebSocket</strong> : canal full‑duplex persistant pour apps web.</li>
+    <li><strong>CoAP</strong> : similaire à HTTP mais sur UDP, faible empreinte, adapté IoT.</li>
+  </ul>
+
+  <h3>6. Exemple détaillé : Modbus RTU, lecture de registres</h3>
   <p>
-    Bien que lent, HART est extrêmement répandu dans l’industrie chimique, pétrolière et les process en zones ATEX.
+    Un maître envoie une requête « Lire 2 registres à partir de l’adresse 100 » :
   </p>
+  <pre><code>
+  0x01  // Adresse esclave
+  0x03  // Code fonction (lire registres)
+  0x00  // AddrHi = 0
+  0x64  // AddrLo = 100
+  0x00  // #RegsHi = 0
+  0x02  // #RegsLo = 2
+  CRC-L CRC-H
+  </code></pre>
+  <p>
+    L’esclave répond avec le contenu brut :
+  </p>
+  <pre><code>
+  0x01  0x03  0x04  // 4 octets de données
+  0x00 0x2A  // valeur registre 100 = 42
+  0x00 0x7F  // valeur registre 101 = 127
+  CRC-L CRC-H
+  </code></pre>
 
-    <h2>6. Exemple concret : Modbus pas à pas</h2>
-    <p>
-      Modbus est l’un des plus simples :
-    </p>
-    <ul>
-      <li>Un <strong>maître</strong> (client) interroge un ou plusieurs <strong>esclaves</strong> (serveurs).</li>
-      <li>Chaque message contient :  
-        <ul>
-          <li>Adresse de l’esclave (1 octet),</li>
-          <li>Code de fonction (lecture/écriture),</li>
-          <li>Données (registers, coils…),</li>
-          <li>Checksum CRC (2 octets) pour la fiabilité.</li>
-        </ul>
-      </li>
-      <li>L’esclave répond avec les données demandées ou un code d’erreur.</li>
-    </ul>
+  <h3>7. Implémentation : Modbus en Python & JS</h3>
+  <p><strong>a. Python (pyserial / pymodbus)</strong></p>
+  <ol>
+    <li>Ouvrir le port série ou le socket TCP.</li>
+    <li>Construire la trame (adresse, fonction, adresse registre, nombre, CRC).</li>
+    <li>Envoyer et lire la réponse, valider le CRC.</li>
+    <li>Logger chaque échange pour débogage.</li>
+  </ol>
+  <p><strong>b. JavaScript (Node.js + WebSocket)</strong></p>
+  <ol>
+    <li>Serveur Node.js écoute les requêtes WebSocket.</li>
+    <li>Convertir messages JSON en trames Modbus (ArrayBuffer, DataView).</li>
+    <li>Envoyer au port série via un module natif (ex. serialport).</li>
+    <li>Renvoi des réponses JSON au client web, affichage en temps réel.</li>
+  </ol>
 
-    <h2>7. Ton projet : recréer Modbus en Python et JavaScript</h2>
-    <p>
-      Pour bien apprendre, rien de tel que de coder soi‑même ! Voilà le plan :
-    </p>
-    <h3>a. Version Python (PC)</h3>
-    <ul>
-      <li>Installer <code>pyserial</code> pour simuler un port série ou utiliser Modbus/TCP.</li>
-      <li>Écrire un module maître : ouvrir la connexion, construire la trame, calculer le CRC, envoyer et lire la réponse.</li>
-      <li>Écrire un module esclave : écouter, décoder la trame, renvoyer les données ou un code d’erreur.</li>
-      <li>Implémenter un logger pour tracer les échanges.</li>
-    </ul>
-    <h3>b. Version JavaScript (navigateur)</h3>
-    <ul>
-      <li>Créer une interface web (HTML/CSS/JS) avec un champ pour l’adresse et les registres.</li>
-      <li>Utiliser <code>WebSocket</code> pour communiquer avec un petit serveur Node.js faisant le relai Modbus.</li>
-      <li>Encoder/décoder les trames Modbus en JS (ArrayBuffer, DataView).</li>
-      <li>Afficher les échanges en temps réel dans la page (console graphique, tableau).</li>
-    </ul>
-    <p>
-      Cette double approche permet de couvrir à la fois la logique bas‑niveau (Python) et l’interface utilisateur (JS), tout en respectant le même protocole.
-    </p>
+  <h3>8. Ressources & prochaines étapes</h3>
+  <ul>
+    <li><a href="https://modbus.org/specs.php">Spécifications officielles Modbus</a></li>
+    <li><a href="https://pymodbus.readthedocs.io">Bibliothèque Python pymodbus</a></li>
+    <li><a href="https://www.npmjs.com/package/serialport">Module Node.js serialport</a></li>
+    <li><a href="https://umami.is">Umami Analytics pour suivre les visites</a></li>
+    <li>Section Tutorials : exemples Ghidra pour l’analyse de firmwares industriels</li>
+  </ul>
 
-    <h2>8. Ressources et prochaines étapes</h2>
-    <ul>
-      <li>Spécification officielle Modbus : <a href="https://modbus.org" target="_blank">modbus.org</a></li>
-      <li>Bibliothèques Python : <code>pymodbus</code>, <code>pyserial</code></li>
-      <li>Exemple WebSocket en Node.js : <code>ws</code></li>
-      <li>Tutoriel Ghidra pour analyser des firmwares industriels (à retrouver dans la section Tutorials)</li>
-    </ul>
+  <p>
+    Prêt à démarrer ? Clone le dépôt GitHub, installe les dépendances, et lance ton premier “Hello World” Modbus !  
+    Bon coding !
+  </p>
+</article>
 
-    <p>
-      Prêt à te lancer ? Clone le repo GitHub, installe les dépendances et commence par un simple “Hello World” Modbus. Bon coding !
-    </p>
-  </article>
 </main>
 
     <footer>
         &copy; 2025 0xRevSec — Software, Security & Programming
     </footer>
+    <script>
+  // Quand la page est chargée, on va chercher nav.html
+  document.addEventListener("DOMContentLoaded", function() {
+    fetch("nav.html")
+      .then(resp => resp.text())
+      .then(html => {
+        document.getElementById("nav-placeholder").innerHTML = html;
+      })
+      .catch(err => console.error("Erreur chargement nav :", err));
+  });
+</script>
+
 </body>
 </html>

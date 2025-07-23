@@ -11,13 +11,7 @@
     <a href="index.html">
       <img src="logo.png" alt="Logo" id="logo" width="10" height="150">
     </a>
-  <nav>
-    <a href="projects.html">Projects</a>
-    <a href="tools.html">Toolbox</a>
-    <a href="tuto.html">Tutorials</a>
-    <a href="articles.html">Articles</a>
-    <a href="contact.html">Contact</a>
-  </nav>
+  <div id="nav-placeholder"></div>
   </header>
 
   <main>
@@ -51,10 +45,10 @@
 
       <h1>Règles Simples pour Survivre à l'Ingénierie Sociale</h1>
 
-      <h2>🔐 Règle 1 – Le Réflexe du ".com douteux"</h2>
+      <h2>🔐 Règle 1 – Le Réflexe du domaine</h2>
       <p>
-        <strong>Ne clique jamais sans vérifier l'adresse du lien.</strong><br>
-        Survolez le lien avec la souris avant de cliquer. Un domaine douteux ? Ignorez-le.
+        <strong>Ne clique jamais sans vérifier l'adresse du domaine.</strong><br>
+        Le nom de domaine @domaine.com est different de @domaine.fauxdomaine.com, souvent un site malveillant ajoutera un mot de confiance apres le point et le nom a imiter avant, par exemple @domaine.gouv-enfrance.com.
       </p>
       <blockquote>"Si tu ne cliques pas, tu ne risques pas."</blockquote>
 
@@ -137,5 +131,17 @@
     <footer>
         &copy; 2025 0xRevSec — Software, Security & Programming
     </footer>
+    <script>
+  // Quand la page est chargée, on va chercher nav.html
+  document.addEventListener("DOMContentLoaded", function() {
+    fetch("nav.html")
+      .then(resp => resp.text())
+      .then(html => {
+        document.getElementById("nav-placeholder").innerHTML = html;
+      })
+      .catch(err => console.error("Erreur chargement nav :", err));
+  });
+</script>
+
 </body>
 </html>

@@ -11,20 +11,14 @@
   <a href="index.html">
     <img src="logo.png" alt="Company Logo" id="logo" width="10" height="150">
   </a>
-  <nav>
-    <a href="projects.html">Projects</a>
-    <a href="tools.html">Toolbox</a>
-    <a href="tuto.html">Tutorials</a>
-    <a href="articles.html">Articles</a>
-    <a href="contact.html">Contact</a>
-  </nav>
+  <div id="nav-placeholder"></div>
 </header>
     <main>
         <section id="projects" class="projects">
            <h2>My Projects</h2>
             <ul>
-                <li><strong>Simuation communication Modbus</strong> — Commander esp32 en modbus avec PC</li>
-                <li><strong>RC Car </strong> — Controle d'une voiture telecommande avec volant logitech</li>
+                <li><strong>Simulation communication Modbus</strong> — Commander esp32 en modbus avec PC</li>
+                <li><strong>RC Car </strong> — Controle d'une voiture telecommande avec volant logitech et interface web</li>
                 <li><strong>Controle d'acces</strong> — Systeme de controle d'acces avec videosurveillance</li>
             </ul>
         </section>
@@ -33,4 +27,16 @@
     <footer>
         &copy; 2025 0xRevSec — Software, Security & Programming
     </footer>
+    <script>
+  // Quand la page est chargée, on va chercher nav.html
+  document.addEventListener("DOMContentLoaded", function() {
+    fetch("nav.html")
+      .then(resp => resp.text())
+      .then(html => {
+        document.getElementById("nav-placeholder").innerHTML = html;
+      })
+      .catch(err => console.error("Erreur chargement nav :", err));
+  });
+</script>
+
 </body>

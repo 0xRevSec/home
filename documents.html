@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documents à Télécharger – 0xRevSec</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header>
+    <a href="index.html">
+      <img src="logo.png" alt="Logo 0xRevSec" id="logo">
+    </a>
+    <div id="nav-placeholder"></div>
+  </header>
+
+  <main>
+    <section class="articles">
+      
+      <div class="pdf-list">
+   
+
+      <div class="pdf-card">
+        <h2>Computer Security Fundamentals</h2>
+        <img src="image/security.png" alt="Miniature Guide d’installation" class="pdf-thumb" width="80" height="110">
+        
+        <p>Ce guide d’introduction à la sécurité informatique présente en un seul volume les concepts, enjeux et technologies essentiels pour comprendre, détecter et contrer les menaces actuelles. Rédigé par Chuck Easttom, expert et formateur, il aborde :
+
+Les notions de base : terminologie, modèles de menaces et bonnes pratiques réseau
+
+Les principales attaques (web, DoS, malwares, ingénierie sociale) et leurs contre‐mesures
+
+La mise en place d’une défense en profondeur (pare‐feu, VPN, appliances de sécurité)
+
+Le chiffrement, la gestion des mots de passe et l’élaboration de politiques de sécurité
+
+Les techniques de scan de vulnérabilités et d’analyse forensique
+
+Les défis émergents liés à l’Internet des objets et à la cyberguerre
+
+Chaque chapitre propose exercices et projets pour appliquer les notions, faire évoluer vos compétences et préparer une carrière dans la sécurité informatique.</p>
+          <a href="pdf/Embedded_systems .pdf" download>⬇️ Télécharger</a>
+        <br>
+          <br>
+            <br>
+        </div>
+
+              <div class="pdf-card">
+        <h2>Embedded Systems: Real-Time Operating Systems for ARM Cortex-M Microcontrollers</h2>
+        <img src="image/embedded.png" alt="Miniature Guide d’installation" class="pdf-thumb" width="80" height="110">
+        
+        <p>Embedded Systems: ARM Cortex‑M, Volume 3 (4ᵉ éd., janvier 2017) est le dernier volet d’une trilogie consacrée aux systèmes embarqués sur microcontrôleurs ARM Cortex‑M. Destiné aux étudiants en fin de licence/master et aux ingénieurs souhaitant concevoir leur propre système d’exploitation temps‑réel (RTOS), il s’appuie sur les plates‑formes TI TM4C123, TM4C1294 et MSP432.
+
+Cet ouvrage couvre :
+
+les concepts et la mise en œuvre d’OS temps‑réel,
+
+l’interfaçage haute vitesse (Ethernet, UART, SPI, I²C),
+
+le contrôle de moteurs et le traitement du signal (filtres analogiques/numériques),
+
+les applications Bluetooth et IoT.
+
+Chaque chapitre propose des exemples détaillés, des checkpoints pour auto‑évaluation et des exercices pratiques. Les laboratoires EE445M/EE380L, ainsi que des projets Keil uVision et ressources (datasheets, tableurs) sont disponibles en ligne pour approfondir la mise en œuvre.</p>
+          <a href="pdf/11. Security.pdf" download>⬇️ Télécharger</a>
+        </div>
+
+        <!-- Ajoute d'autres cartes PDF ici -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 0xRevSec — Software, Security & Programming
+  </footer>
+
+  <script>
+    // Inclure dynamiquement le menu depuis nav.html
+    document.addEventListener("DOMContentLoaded", function() {
+      fetch("nav.html")
+        .then(resp => resp.text())
+        .then(html => {
+          document.getElementById("nav-placeholder").innerHTML = html;
+        })
+        .catch(err => console.error("Erreur chargement nav :", err));
+    });
+  </script>
+
+</body>
+</html>
