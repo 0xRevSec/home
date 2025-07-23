@@ -23,7 +23,7 @@
         Dans l’automatisation industrielle, Modbus RTU est un protocole populaire pour échanger des données entre un maître et plusieurs esclaves via une ligne série.  
         Ici, nous montrons comment réaliser un échange Modbus RTU <strong>sans module RS‑485</strong>, en liaison directe UART‑TTL entre deux ESP32, pour lire la température d’une sonde DHT22 et piloter un moteur DC. La commande utilisateur se fera depuis un PC sur interface 
         graphique (supervision). Le esp32 maitre aura un mini serveur HTTP et pourra communiquer avec la supervision en WIFI.
-        <br>Ce projet a pour but de comprendre en bas niveau ce que nous comprennons en surface.
+        <br>Ce projet a pour but de comprendre en bas niveau ce que nous comprennons en surface. 
       </p>
       <ul>
         <li><strong>ESP32 esclave</strong> lit la température, active le moteur et répond aux requêtes.</li>
@@ -49,7 +49,8 @@
       <h2>3. Matériel requis</h2>
       <ul>
         <li>2 × ESP32 (<em>n’importe quel modèle</em>)</li>
-        <li>1 × Sonde DHT22 (GPIO‑TTL)</li>
+        <li>1 × Sonde temperature (GPIO‑TTL)</li>
+        <li>Un moteur DC</li>
         <li>Câbles Dupont pour TX/RX et GND</li>
         <li>Ordinateur ou analyseur logique (Saleae, PulseView…) pour monitorer</li>
       </ul>
@@ -61,7 +62,7 @@ ESP32 Maître            ESP32 Esclave      Sonde DHT22
 TX1 (GPIO 17) ——— RX1 (GPIO 16)
 RX1 (GPIO 16) ——— TX1 (GPIO 17)
 GND         —————— GND
-DHT22 DATA ————— GPIO 4 (esclave)
+Sonde DATA ————— GPIO 4 (esclave)
 VCC (3.3 V) ————— VCC (sonde)
       </code></pre>
 
@@ -74,7 +75,7 @@ VCC (3.3 V) ————— VCC (sonde)
         <li><strong>Silence inter‑trames</strong> ≥ 3,5 × 1,04 ms ≃ 3,6 ms</li>
       </ul>
 
-      <h2>6. Trame de requête / réponse</h2>
+      <h2>6. Trame de requête / réponse pour lecture de la temperature</h2>
       <h3>Requête maître → esclave</h3>
       <pre><code>
 Octet  Hex   Description
@@ -251,7 +252,8 @@ void loop() {
   Le protocole Modbus RTU reste identique sur UART-TTL ou RS‑485, les trames, fonctions et timing ne changent pas.<br>
   Cependant, la gestion matérielle du bus (activation/désactivation des émetteurs via DE/RE sur RS‑485) est spécifique à RS‑485.
 </p>
-
+<br><br>
+Lien ressources : <a href="https://github.com/0xRevSec/Modbus_RTU.git"><strong>github.com/0xRevSec/Modbus_RTU.git</strong></a>
     </article>
   </main>
 
