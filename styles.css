@@ -170,11 +170,13 @@ input, textarea {
 @media (max-width: 600px) {
   header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center; /* centrer horizontalement */
+    text-align: center;
   }
 
   nav {
     flex-direction: column;
+    align-items: center; /* centrer les liens */
     width: 100%;
   }
 
@@ -184,5 +186,6 @@ input, textarea {
 
   #logo {
     margin-bottom: 0.5rem;
+    display: block;
   }
 }
