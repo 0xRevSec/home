@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>0xRevSec – Industrial Instrumentation, Automatisme & Systèmes de Sécurité</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="nav-placeholder"></div>
+
+<main>
+ <article class="article">
+  <h2>Pourquoi utilise-t-on une résistance de fin de ligne ?</h2>
+
+  <p>Dans les réseaux de communication série comme le <strong>RS-485</strong>, le <strong>Profibus DP</strong> ou les bus de terrain industriels, on utilise des <strong>résistances de fin de ligne</strong> pour assurer la fiabilité de la transmission des données. Ces résistances sont souvent appelées <em>terminaisons</em>.</p>
+
+  <h3>📡 Le problème des réflexions de signal</h3>
+  <p>Quand un signal électrique se propage dans un câble, il peut rencontrer une impédance différente (par exemple, à l'extrémité du câble). S'il n'y a pas de terminaison adaptée, une partie du signal peut <strong>rebondir</strong> et retourner en arrière. Ce phénomène s'appelle une <strong>réflexion de signal</strong>.</p>
+  <p>Les réflexions peuvent entraîner :</p>
+  <ul>
+    <li>des erreurs de transmission,</li>
+    <li>des signaux parasites,</li>
+    <li>une instabilité du bus de communication.</li>
+  </ul>
+
+  <h3>🛠️ Le rôle des résistances de fin de ligne</h3>
+  <p>Pour éviter cela, on place une <strong>résistance de terminaison</strong> à chaque extrémité du bus. Cette résistance a une valeur qui correspond à l’<strong>impédance caractéristique du câble</strong> (souvent 120 Ω pour RS‑485 ou Profibus DP).</p>
+
+  <p>Ces résistances permettent :</p>
+  <ul>
+    <li>d’<strong>absorber le signal</strong> au lieu de le laisser rebondir,</li>
+    <li>d’assurer une <strong>intégrité du signal</strong>, même sur de longues distances,</li>
+    <li>d’<strong>éviter les réflexions</strong> et les interférences.</li>
+  </ul>
+
+  <h3>📏 Où placer la terminaison ?</h3>
+  <p>La règle est simple :</p>
+  <ul>
+    <li><strong>1 résistance à chaque extrémité du bus</strong>,</li>
+    <li><strong>Jamais au milieu</strong> du réseau, même s’il y a plusieurs équipements.</li>
+  </ul>
+
+  <h3>⚠️ À ne pas confondre</h3>
+  <p>Ne confondez pas les résistances de fin de ligne avec celles utilisées pour la détection de sabotage ou de défaut dans les systèmes d’alarme ! Ici, on parle uniquement de <strong>terminaisons pour les réseaux de communication</strong>.</p>
+
+  <h3>💡 Exemple pratique : Profibus DP</h3>
+  <p>Dans un réseau <strong>Profibus DP</strong>, on active la résistance de fin de ligne via un petit interrupteur (switch) sur les connecteurs DB9 des extrémités. Si le réseau est instable, c’est souvent un problème de terminaison !</p>
+
+  <h3>✅ Résumé</h3>
+  <ul>
+    <li>Une résistance de fin de ligne empêche les réflexions de signal sur un bus série.</li>
+    <li>Elle est indispensable pour la stabilité des réseaux type RS-485, Profibus, CAN, etc.</li>
+    <li>Elle doit être placée uniquement aux extrémités du bus.</li>
+    <li>Valeur typique : 120 Ω pour RS-485.</li>
+  </ul>
+
+</sarticle>
+
+</main>
+
+<div id="footer-placeholder"></div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Charger nav
+  fetch("nav.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("nav-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement nav :", err));
+
+  // Charger footer
+  fetch("footer.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("footer-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement footer :", err));
+});
+
+  
+</script>
+</body>
+</html>
+
+
