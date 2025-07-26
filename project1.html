@@ -220,6 +220,8 @@ void loop() {
   delay(2000);
 }
       </code></pre>
+
+      
 <br>
       <h2>9. Surveillance &amp; Analyseur logique</h2>
       <ul>
@@ -230,82 +232,6 @@ void loop() {
         <li>Activez le décodage UART pour voir chaque octet en hex.</li>
       </ul>
 <br>
-<h2>Architecture générale du projet</h2>
-<p>
-  L’<strong>ESP32 Maître</strong> reçoit des requêtes HTTP via Wi-Fi, les transforme en trames Modbus RTU, puis les envoie à l’esclave via UART. 
-  L’<strong>ESP32 Esclave</strong> lit la température, pilote un moteur, et répond aux commandes Modbus reçues.
-</p>
-
-<h2>Fichier moteur.h</h2>
-<ul>
-  <li><code>moteur_init()</code> : initialise les broches GPIO moteur à l’état bas (LOW).</li>
-  <li><code>moteur_avance()</code>, <code>moteur_recule()</code>, <code>moteur_stop()</code> : contrôlent les broches IN1 et IN2 du module L298N pour commander le sens de rotation du moteur.</li>
-</ul>
-<p>
-  Ces fonctions permettent une séparation claire entre la logique de communication et le contrôle du moteur.
-</p>
-
-<h2>Fichier temperature.h</h2>
-<ul>
-  <li><code>lire_temperature()</code> : lit la tension sur un pont diviseur contenant une thermistance NTC, puis la convertit en température (°C) avec la formule de Steinhart-Hart.</li>
-  <li>La température est multipliée par 10 pour obtenir un entier (exemple : 23.4 °C devient 234).</li>
-</ul>
-<p>
-  Cette valeur entière est ensuite envoyée via Modbus, adaptée au format 16 bits.
-</p>
-
-<h2>Fichier modbus_crc.h</h2>
-<ul>
-  <li><code>calcCRC()</code> : calcule le CRC-16 Modbus de toutes les trames sortantes.</li>
-</ul>
-<p>
-  Ce CRC est indispensable pour garantir l’intégrité de chaque trame Modbus RTU.
-</p>
-
-<h2>Fichier slave.ino</h2>
-<p>
-  Au démarrage, l’esclave initialise l’UART, les modules moteur et température.
-  Dans la boucle principale :
-</p>
-<ul>
-  <li>Lit une trame entrante de 8 octets.</li>
-  <li>Vérifie la validité du CRC.</li>
-  <li>Interprète la fonction :
-    <ul>
-      <li>0x03 (lecture) sur le registre 0x0001 : envoie la température.</li>
-      <li>0x06 (écriture) sur le registre 0x0002 : commande le moteur (avance, recule ou stop selon la valeur).</li>
-    </ul>
-  </li>
-</ul>
-<p>
-  Chaque réponse suit le format Modbus avec CRC.
-</p>
-
-<h2>Fichier master.ino</h2>
-<p>
-  Bien que non fourni, ce fichier crée un serveur HTTP avec des routes comme :
-</p>
-<ul>
-  <li><code>/temp</code> : lecture de la température via une trame Modbus 0x03.</li>
-  <li><code>/modbus/start?vitesse=xxx</code> : envoie une trame 0x06 pour démarrer le moteur.</li>
-  <li><code>/modbus/stop</code> : envoie une trame 0x06 avec valeur 0 pour arrêter le moteur.</li>
-</ul>
-<p>
-  Le maître agit donc comme passerelle entre HTTP (réseau) et Modbus RTU (série).
-</p>
-
-<h2>Trame Modbus RTU (exemple lecture)</h2>
-<pre><code>
-[ SLAVE_ID | 0x03 | 0x00 | 0x01 | 0x00 | 0x01 | CRC_LO | CRC_HI ]
-</code></pre>
-<ul>
-  <li><code>0x03</code> : fonction lecture.</li>
-  <li><code>0x0001</code> : registre de la température.</li>
-  <li><code>0x0001</code> : nombre de registres à lire.</li>
-</ul>
-<p>
-  Le format de trame est fixe et reconnu par tous les équipements Modbus RTU.
-</p>
 
  <h2>10. Extensions possibles</h2>
 
