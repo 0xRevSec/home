@@ -60,22 +60,8 @@
       </ul>
       <br>
 <h2>4. Câblage &amp; Brochage</h2>
-<pre><code>
-ESP32 Maître                    ESP32 Esclave                  
--------------                   -------------                  
-TX1 (GPIO 17) ───────────────► RX1 (GPIO 16)    ← Liaison Modbus RTU (UART1)
-RX1 (GPIO 16) ◀─────────────── TX1 (GPIO 17)    ← via TTL direct (ou module RS‑485)
-GND          ───────────────── GND            ← Masse commune
-
-Thermistance NTC + résistance fixe (pont diviseur) :
-  3.3 V ── 2 kΩ fixe ──●── NTC 2 kΩ ── GND  
-                      │  
-                 GPIO 34 (ADC)           ← Lecture température
-
-Pilotage moteur via L298N :
-  IN1 ── GPIO 16                          ← Marche/Arret
-  IN2 ── GPIO 17
-</code></pre>
+<br>
+<img src="image/cablage_reel.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
 <br>
 <img src="image/cablage.jpg" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
 <br>
@@ -296,7 +282,7 @@ void loop() {
 <p>
   Le protocole Modbus RTU reste identique sur UART-TTL ou RS‑485, les trames, fonctions et timing ne changent pas.<br>
   Cependant, la gestion matérielle du bus (activation/désactivation des émetteurs via DE/RE sur RS‑485) est spécifique à RS‑485.
-  A l'avenir, nous allons ajouter un convertisseur rs485. Nozus allons egalement analyser les trames avec un analyseur logique et essayer de detcter manuellement et automatiquement la trame lecture temperature. Nous allons ealement sniffer le traffic reseau 
+  A l'avenir, nous allons ajouter un convertisseur rs485. Nous allons egalement analyser les trames avec un analyseur logique et essayer de detecter manuellement et automatiquement la trame lecture temperature. Nous allons egalement sniffer le traffic reseau 
   pour identifier le paquet wifi du pc vers esp32 (HTP).
 </p>
 <br><br>
