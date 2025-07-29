@@ -329,9 +329,9 @@
 </a>
 <p><em>Capture wireshark réponse GET température</em></p>
 <br>
-  <h2>11. Extraction et Analyse du Firmware ESP32</h2>
+  <h2>7. Extraction et Analyse du Firmware ESP32</h2>
 
-  <h3>11.1. Dump du firmware via esptool.py</h3>
+  <h3>7.1. Dump du firmware via esptool.py</h3>
   <p>Pour lire la mémoire flash de l’ESP32 et en extraire le firmware, utilisez <code>esptool.py</code> :</p>
   <pre class="linenums"><code>
 # Installer esptool si besoin
@@ -345,7 +345,7 @@ esptool.py --port /dev/ttyUSB0 read_flash 0x00000 0x400000 firmware.bin
 </a>
 <p><em>Extraction</em></p>
 <br>
-  <h3>11.2. Ouverture du binaire avec HxD</h3>
+  <h3>7.2. Ouverture du binaire avec HxD</h3>
   <p>Ouvrez <code>firmware.bin</code> dans l’éditeur hexadécimal HxD (Windows) :</p>
   <ul>
     <li>Fichier → Ouvrir → sélectionnez <code>firmware.bin</code>.</li>
@@ -359,27 +359,27 @@ esptool.py --port /dev/ttyUSB0 read_flash 0x00000 0x400000 firmware.bin
 <br>
  
 
-      <h2>7. Perspectives d'Évolution</h2>
+      <h2>8. Perspectives d'Évolution</h2>
       <p>Ce projet de base ouvre la voie à de nombreuses améliorations pour le rendre plus robuste et adapté à un environnement industriel réel.</p>
 
-      <h3>7.1. Migration vers RS-485 (bus différentiel)</h3>
+      <h3>8.1. Migration vers RS-485 (bus différentiel)</h3>
       <ul>
         <li>Ajout de modules **MAX485** ou équivalents sur chaque ESP32 pour convertir les signaux TTL en RS-485. Cela implique la gestion de la broche DE/RE (Data Enable/Receive Enable) pour contrôler la direction de la transmission.</li>
         <li>La migration vers le **RS-485** permettra une communication fiable sur de **plus longues distances** et la mise en place d'une **topologie multi-drop** (plusieurs esclaves sur le même bus).</li>
       </ul>
 
-      <h3>7.2. Support multi-registres et multi-fonctions</h3>
+      <h3>8.2. Support multi-registres et multi-fonctions</h3>
       <ul>
         <li>Actuellement, le projet ne gère que la lecture d'un seul registre (température, fonction 0x03) et l'écriture d'un seul registre (moteur, fonction 0x06). L'implémentation de fonctions Modbus supplémentaires, comme l'**écriture de registres multiples (0x10)** ou la **lecture d'entrées discrètes (0x02)**, rendrait le système plus polyvalent.</li>
       </ul>
 
-      <h3>7.3. Gestion d’erreurs et timeout</h3>
+      <h3>8.3. Gestion d’erreurs et timeout</h3>
       <ul>
         <li>Améliorer la robustesse du maître en implémentant des mécanismes de **retransmissions** en cas de non-réponse de l'esclave ou de réponse invalide.</li>
         <li>Mettre en place un **journal d'erreurs** détaillé pour faciliter le débogage et la maintenance.</li>
       </ul>
 
-      <h3>7.4. Intégration réseau (MQTT, OPC UA)</h3>
+      <h3>8.4. Intégration réseau (MQTT, OPC UA)</h3>
       <ul>
         <li>Pour une intégration plus poussée dans des systèmes d'information industriels (IIoT), l'ESP32 maître pourrait être étendu pour :
           <ul>
@@ -390,26 +390,26 @@ esptool.py --port /dev/ttyUSB0 read_flash 0x00000 0x400000 firmware.bin
       </ul>
 
 
-      <h2>7. Sécurité &amp; Hacking Modbus</h2>
+      <h2>9. Sécurité &amp; Hacking Modbus</h2>
       <p>La simplicité de Modbus, bien que bénéfique, le rend également vulnérable si des mesures de sécurité ne sont pas prises, surtout lorsqu'il est connecté à un réseau IP.</p>
 
-      <h3>7.1. Menaces Modbus : injection, spoofing</h3>
+      <h3>9.1. Menaces Modbus : injection, spoofing</h3>
       <ul>
         <li><strong>Injection de trames malveillantes :</strong> Un attaquant ayant accès au bus Modbus (physiquement ou via un réseau non sécurisé) pourrait injecter de fausses commandes pour falsifier les données ou piloter les équipements de manière non autorisée.</li>
         <li><strong>Spoofing :</strong> Un attaquant pourrait se faire passer pour un maître ou un esclave légitime pour intercepter ou manipuler la communication.</li>
       </ul>
 
-      <h3>7.2. Attaques par déni de service</h3>
+      <h3>9.2. Attaques par déni de service</h3>
       <ul>
         <li>L'**inondation du bus** avec un grand nombre de requêtes ou de données inutiles peut saturer la liaison et bloquer la communication légitime, entraînant un déni de service du système de contrôle.</li>
       </ul>
 
-      <h3>7.3. Analyse passive des trames UART</h3>
+      <h3>9.3. Analyse passive des trames UART</h3>
       <ul>
         <li>Le **sniffing** avec un **analyseur logique** sur les broches TX/RX permet à un attaquant d'observer passivement le flux de données Modbus, de comprendre la logique de communication et d'identifier les registres critiques sans altérer le fonctionnement. Cette technique est souvent utilisée pour la reconnaissance avant une attaque.</li>
       </ul>
 
-      <h3>7.4. Sniffing réseau Wi-Fi HTTP (supervision)</h3>
+      <h3>9.4. Sniffing réseau Wi-Fi HTTP (supervision)</h3>
       <ul>
         <li>Étant donné que la supervision utilise une communication Wi-Fi **HTTP non chiffrée**, un outil comme **Wireshark** peut facilement **capturer les paquets HTTP** entre le PC et l'ESP32 maître. Cela exposerait les commandes (ex: vitesse moteur) et les données (température) en clair, posant un risque de confidentialité et d'intégrité si l'accès au réseau Wi-Fi n'est pas sécurisé. L'analyse des entêtes et du contenu des requêtes HTTP est cruciale pour identifier d'éventuelles vulnérabilités.</li>
       </ul>
