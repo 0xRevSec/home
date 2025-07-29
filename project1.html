@@ -1,306 +1,465 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Projet Modbus RTU entre deux ESP32 – Version TTL Direct</title>
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Highlight.js pour coloration syntaxique -->
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-  <script>hljs.highlightAll();</script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>0xRevSec - Software Projects & Reverse Engineering</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="nav-placeholder"></div>
-
-  <main>
+<div id="nav-placeholder"></div>
+    <main>
     <article class="article">
       <h1>Projet Modbus RTU entre deux ESP32 (UART‑TTL direct)</h1>
 
       <h2>1. Contexte &amp; Objectif</h2>
       <p>
-        Dans l’automatisation industrielle, Modbus est un protocole populaire pour échanger des données entre un maître et plusieurs esclaves via une ligne série.  
-        Ici, nous montrons comment réaliser un échange Modbus RTU <strong>sans module RS‑485</strong>, en liaison directe UART‑TTL entre deux ESP32, pour lire la température d’une sonde DHT22 et piloter un moteur DC. La commande utilisateur se fera depuis un PC sur interface 
+        Dans l’automatisation industrielle, Modbus est un protocole populaire pour échanger des données entre un maître et plusieurs esclaves via une ligne série.
+        Ici, nous montrons comment réaliser un échange Modbus RTU <strong>sans module RS‑485</strong>, en liaison directe UART‑TTL entre deux ESP32, pour lire la température d’une sonde et piloter un moteur DC. La commande utilisateur se fera depuis un PC sur interface
         graphique (supervision). Le esp32 maitre aura un mini serveur HTTP et pourra communiquer avec la supervision en WIFI.
-        <br>Ce projet a pour but de comprendre en bas niveau ce que nous comprennons en surface. 
+        <br>Ce projet a pour but de comprendre en bas niveau ce que nous comprenons en surface.
       </p>
       <ul>
         <li><strong>Commande par supervision PC</strong> : envoi de requêtes HTTP au serveur hébergé sur l’ESP32 maître.</li>
-        <li><strong>ESP32 maître</strong> interroge l’esclave et affiche la valeur ou demande de pilotage le moteur (requete Modbus).</li>
-        <li><strong>ESP32 esclave</strong> lit la température, active le moteur et répond aux requêtes (requete Modbus).</li>      
+        <li><strong>ESP32 maître</strong> interroge l’esclave et affiche la valeur ou demande de pilotage le moteur (requête Modbus).</li>
+        <li><strong>ESP32 esclave</strong> lit la température, active le moteur et répond aux requêtes (requête Modbus).</li>
         <li><strong>Communication point‑à‑point, full‑duplex, via TX/RX croisés.</li>
-        <li>Analyse des paaquets HTTP et requete modbus.</li>
+        <li>Analyse des paquets HTTP et requête modbus.</li>
         <li>Ajout convertisseur RS485 et test robustesse.</li>
-<img src="image/synoptique_modbuspng.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
-
-      <br>  <br>
-      <h2>2. Avantages &amp; Limites de l’UART‑TTL direct</h2>
-      <table>
-        <thead>
-          <tr><th>Critère</th><th>UART‑TTL direct</th><th>RS‑485 (bus différentiel)</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Distance</td><td>≤ 5 m</td><td>Jusqu’à 1 200 m</td></tr>
-          <tr><td>Nombre de nœuds</td><td>2 uniquement</td><td>Plusieurs (multi‑drop)</td></tr>
-          <tr><td>Complexité</td><td>Très simple</td><td>Modules RS‑485 + DE/RE</td></tr>
-          <tr><td>Robustesse</td><td>Faible (bruit)</td><td>Haute (différentiel)</td></tr>
-        </tbody>
-      </table>
-      <br>
-
-      <h2>3. Matériel requis</h2>
-      <ul>
-        <li>2 × ESP32 (<em>n’importe quel modèle</em>)</li>
-        <li>1 × Sonde temperature </li>
-        <li>Un moteur DC</li>
-        <li>Alimentation 5V-3.3V</li>
-        <li>Câbles Dupont pour TX/RX et GND</li>
-        <li>Ordinateur et analyseur logique (Saleae, PulseView…) pour monitorer</li>
       </ul>
-      <br>
-<h2>4. Câblage &amp; Brochage</h2>
-<br>
-<img src="image/cablage_reel.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
-<br>
-<img src="image/cablage.jpg" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
-<br>
-<h2>5. Protocole Modbus RTU – Rappels temporels et CRC</h2>
-<ul>
-  <li>Baudrate : 9600 bauds</li>
-  <li>Format : 8 N 1 
-    <ul>
-      <li>Start bit (1 bit) : toujours à 0, marque le début d’un caractère</li>
-      <li>Data bits (8 bits) : les données envoyées, bit de poids faible en premier</li>
-      <li>Stop bit (1 bit) : toujours à 1, marque la fin du caractère</li>
-    </ul>
-  </li>
-  <li>Durée d’un bit : environ 104 microsecondes (1 / 9600)</li>
-  <li>Durée d’un octet : 10 bits × 104 µs ≃ 1,04 milliseconde</li>
-  <li>Silence inter-trames : au moins 3,5 fois la durée d’un octet, soit environ 3,6 millisecondes
-    <br>Ce délai permet de signaler la fin d’une trame avant d’en envoyer une nouvelle.</li>
-  <li>CRC-16 : 2 octets ajoutés à la fin de chaque trame pour vérifier l’intégrité
-    <ul>
-      <li>Le CRC est initialisé à 0xFFFF</li>
-      <li>Chaque octet de la trame est intégré dans le calcul :
-        <ol>
-          <li>Le CRC est mis en XOR avec l’octet</li>
-          <li>On répète 8 fois :
-            <ul>
-              <li>Si le bit de poids faible du CRC est 1, on décale le CRC à droite puis XOR avec 0xA001</li>
-              <li>Sinon, on décale simplement le CRC à droite</li>
-            </ul>
-          </li>
-        </ol>
-      </li>
-      <li>Le CRC est ensuite envoyé en deux octets : d’abord le moins significatif, puis le plus significatif</li>
-    </ul>
-  </li>
-</ul>
-
-
-<br>
-      <h2>6. Trame de requête / réponse pour lecture de la temperature</h2>
-     
-      <h3>Requête maître → esclave</h3>
-      <pre><code>
-Octet  Hex   Description
-0      0x01  Adresse esclave (ID=1)
-1      0x03  Fonction Read Holding Register
-2      0x00  Registre haut (0x0001)
-3      0x01  Registre bas
-4      0x00  Nombre de regs haut
-5      0x01  Nombre de regs bas (1)
-6      CRClo  CRC low
-7      CRChi  CRC high
-      </code></pre>
- <img src="image/graph.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
- <p><em>Diagramme detaille de la requete, avec le bit de start (0) et le bit de stop (1). A note les temps long 3.5T qui permette de delimiter les requetes.</em>
-
-      <h3>Réponse esclave → maître</h3>
-      <pre><code>
-Octet  Hex   Description
-0      0x01  Adresse esclave
-1      0x03  Fonction
-2      0x02  Nombre d’octets (2)
-3      Hi    Température haut
-4      Lo    Température bas (×10)
-5      CRClo CRC low
-6      CRChi CRC high
-      </code></pre>
-<br>
-      <h2>7. Code ESP32 Esclave (Modbus + DHT22)</h2>
-      <pre><code class="language-cpp">
-// Inclure la librairie DHT
-#include &lt;DHT.h&gt;
-#define DHTPIN 4
-#define DHTTYPE DHT22
-DHT dht(DHTPIN, DHTTYPE);
-
-HardwareSerial modbus(1);
-
-uint16_t calcCRC(const uint8_t* d, size_t n) {
-  uint16_t crc = 0xFFFF;
-  for (size_t i = 0; i < n; ++i) {
-    crc ^= d[i];
-    for (int b = 0; b < 8; ++b)
-      crc = (crc & 1) ? (crc >> 1) ^ 0xA001 : crc >> 1;
-  }
-  return crc;
-}
-
-void setup() {
-  modbus.begin(9600, SERIAL_8N1, 16, 17);
-  dht.begin();
-}
-
-void loop() {
-  if (modbus.available() >= 8) {
-    uint8_t req[8];
-    modbus.readBytes(req, 8);
-    uint16_t crcReq = (req[7] << 8) | req[6];
-    if (req[0] == 1 && req[1] == 3 && crcReq == calcCRC(req, 6)) {
-      int reg = (req[2] << 8) | req[3];
-      if (reg == 1) {
-        float t = dht.readTemperature();
-        int16_t v = int(t * 10);
-        uint8_t rsp[7] = {
-          1, 3, 2, uint8_t(v >> 8), uint8_t(v & 0xFF), 0, 0
-        };
-        uint16_t crc = calcCRC(rsp, 5);
-        rsp[5] = crc & 0xFF; rsp[6] = crc >> 8;
-        modbus.write(rsp, 7);
-        modbus.flush();
-      }
-    }
-  }
-}
-      </code></pre>
-<br>
-      <h2>8. Code ESP32 Maître (Modbus Requête)</h2>
-      <pre><code class="language-cpp">
-HardwareSerial modbus(2);
-
-uint16_t calcCRC(const uint8_t* d, size_t n); // même algorithme
-
-void setup() {
-  modbus.begin(9600, SERIAL_8N1, 3, 1);
-  Serial.begin(115200);
-}
-
-void loop() {
-  uint8_t req[8] = {1,3,0,1,0,1,0,0};
-  uint16_t c = calcCRC(req, 6);
-  req[6] = c & 0xFF; req[7] = c >> 8;
-
-  modbus.write(req, 8);
-  modbus.flush();
-
-  delay(100);
-  if (modbus.available() >= 7) {
-    uint8_t r[7];
-    modbus.readBytes(r, 7);
-    int16_t v = (r[3] << 8) | r[4];
-    Serial.println(v / 10.0);
-  }
-  delay(2000);
-}
-      </code></pre>
+      <img src="image/synoptique_modbuspng.png" alt="Schéma de câblage Modbus" style="max-width: 85%">
 
       
-<br>
-      <h2>9. Surveillance &amp; Analyseur logique</h2>
+
+      <h2>2. Matériel Nécessaire</h2>
+      <h3>2.1. Liste des composants</h3>
+      <p>Pour réaliser ce projet, vous aurez besoin de :</p>
       <ul>
-        <li>Connectez l’analyseur sur TX/RX (ESP32↔ESP32) et GND.</li>
-        <li>Réglez 9600 bauds, 8N1 dans le logiciel.</li>
-        <li>Observez start bit, 8 data bits, stop bit.</li>
-        <li>Identifiez la pause > 3,5 octets pour délimiter les trames.</li>
-        <li>Activez le décodage UART pour voir chaque octet en hex.</li>
+        <li>2 × cartes <strong>ESP32</strong> (DevKitC ou équivalent).</li>
+        <li>1 × sonde de température (par exemple, un thermistor NTC).</li>
+        <li>1 × résistance 2K (pour le thermistor).</li>
+        <li>1 × moteur DC + 1 module de pilotage <strong>L298N</strong>.</li>
+        <li>Câbles Dupont mâle-mâle pour les connexions.</li>
+        <li>Une alimentation 5 V (avec un régulateur 3.3 V si votre ESP32 le nécessite).</li>
+        <li>Un PC avec l'application Python de supervision.</li>
+        <li>Un <strong>analyseur logique</strong> (optionnel mais fortement recommandé pour le débogage).</li>
+      </ul>
+
+      <h3>2.2. Câblage</h3>
+      <p>Voici les connexions essentielles :</p>
+      <p><strong>Liaison UART-TTL (entre les GPIO 16/17 du maître et de l'esclave) :</strong></p>
+      <ul>
+        <li>Maître <strong>TX</strong> (GPIO 17) → Esclave <strong>RX</strong> (GPIO 16)</li>
+        <li>Maître <strong>RX</strong> (GPIO 16) ← Esclave <strong>TX</strong> (GPIO 17)</li>
+        <li><strong>GND commun</strong> entre les deux ESP32.</li>
+      </ul>
+      <p><strong>Sonde de Température (sur l'ESP32 Esclave) :</strong></p>
+      <ul>
+        <li><strong>3.3V</strong> de l'ESP32 → Une borne du thermistor.</li>
+        <li>L'autre borne du thermistor → Une borne de la résistance 2K.</li>
+        <li>L'autre borne de la résistance 2K → <strong>GND</strong> de l'ESP32.</li>
+        <li><strong>GPIO 34 (ADC)</strong> de l'esclave sur la jonction entre le thermistor et la résistance 2K.</li>
+      </ul>
+      <p><strong>Moteur (sur l'ESP32 Esclave) :</strong></p>
+      <ul>
+        <li>Module <strong>L298N</strong> :
+          <ul>
+            <li>Alimenter le L298N en <strong>5V</strong> (bornes +/-).</li>
+            <li>Relier IN1 du L298N au <strong>GPIO 12</strong> de l'esclave.</li>
+            <li>Relier IN2 du L298N au <strong>GPIO 13</strong> de l'esclave.</li>
+            <li>Connecter les bornes MotorA/MotorB du L298N au moteur DC.</li>
+          </ul>
+        </li>
+      </ul>
+      <br>
+       <img src="image/cablage.jpg" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
+        <p><em>Cablage sur plaquette</em>
+
+        <img src="image/cablage_reel.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
+         <p><em>Schema de cablage</em>
+
+
+     
+      <h2>3. Théorie du Protocole Modbus et Couches de Communication</h2>
+      <p>Dans l'automatisation industrielle, la communication est vitale. Le protocole Modbus, reconnu pour sa robustesse, est omniprésent. Pour comprendre son fonctionnement et son adaptation aux divers environnements, le <strong>Modèle OSI (Open Systems Interconnection)</strong> est un cadre indispensable.</p>
+
+      <h3>3.1. Le Modèle OSI : Une Vue d'Ensemble</h3>
+      <p>Le modèle OSI décompose la communication en sept couches abstraites, chacune ayant une fonction spécifique :</p>
+      <ul>
+        <li><strong>Couche 7 (Application) :</strong> La plus proche de l'utilisateur final. Elle définit le "quoi" et le "comment" de la communication (ex: lire une température). C'est là que résident <strong>Modbus RTU</strong> et <strong>Modbus TCP/IP</strong>.</li>
+        <li><strong>Couche 4 (Transport) & Couche 3 (Réseau) :</strong> Pertinentes pour Modbus TCP/IP (protocoles TCP et IP).</li>
+        <li><strong>Couche 1 (Physique) :</strong> Décrit les spécifications électriques et mécaniques de la transmission des bits bruts. On y trouve <strong>UART-TTL, RS-232, RS-485, et Ethernet</strong>.</li>
+      </ul>
+
+      <h3>3.2. Le Protocole Modbus RTU : Le "Langage" Applicatif (Couche 7)</h3>
+      <p><strong>Modbus RTU</strong> (Remote Terminal Unit) est un protocole de la <strong>couche application (OSI 7)</strong>. Il définit le format des messages (adresse esclave, code de fonction, données, CRC) permettant aux appareils de dialoguer selon un modèle <strong>maître/esclave</strong>. Sa force majeure est son <strong>indépendance vis-à-vis de la couche physique</strong> : les messages Modbus RTU restent identiques, quel que soit le support de transmission sous-jacent.</p>
+
+      <h3>3.3. La Couche Physique dans Notre Projet : UART-TTL (Couche 1)</h3>
+      <p>Dans notre projet pédagogique, nous utilisons l'<strong>UART-TTL (OSI 1)</strong> comme couche physique. L'UART est un module série intégré aux microcontrôleurs, gérant la conversion parallèle-série. TTL fait référence aux niveaux de tension (0V/3.3V ou 5V). La connexion est directe avec 3 fils (TX, RX, GND). La configuration "<strong>9600 bauds 8N1</strong>" est logicielle et définit la vitesse (9600 bits/s), 8 bits de données, pas de parité, et 1 bit de stop. Cependant, le TTL est très sensible au bruit et limité à quelques mètres.</p>
+
+      <h3>3.4. Le Standard Industriel : RS-485 (Couche 1 - Robustesse)</h3>
+      <p>Pour l'industrie, le <strong>RS-485 (OSI 1)</strong> est le standard grâce à sa <strong>robustesse</strong> :</p>
+      <ul>
+        <li><strong>Longue Distance :</strong> Jusqu'à 1200 mètres.</li>
+        <li><strong>Immunité au Bruit :</strong> Utilise la <strong>transmission différentielle</strong> (différence de tension entre deux fils A et B), annulant les interférences.</li>
+        <li><strong>Multi-points :</strong> Un seul bus peut connecter de nombreux appareils (souvent 32+ sans répéteur).</li>
+        <li><strong>Migration :</strong> Pour passer de l'UART-TTL au RS-485, un <strong>module convertisseur RS-485</strong> (ex: MAX485) est nécessaire. Il adapte les niveaux de tension sans modifier la logique Modbus RTU de l'ESP32.</li>
+      </ul>
+
+      <h3>3.5. Autres Couches Physiques et Variantes de Modbus</h3>
+      <p>Le protocole Modbus est flexible et peut être adapté à d'autres supports ou variantes :</p>
+      <ul>
+        <li><strong>RS-232 (OSI 1) :</strong> Interface série plus ancienne, point-à-point (max ~15m), sensible au bruit.</li>
+        <li><strong>Fibre Optique (OSI 1) :</strong> Transmission par lumière. Nécessite des convertisseurs série-vers-fibre. Offre des distances extrêmes (km) et une immunité totale aux interférences et à l'isolation électrique.</li>
+        <li><strong>Sans Fil (OSI 1) :</strong> Via des passerelles radio (Wi-Fi, LoRa, 4G/5G) qui encapsulent les trames Modbus RTU. Propose une installation flexible, mais peut introduire latence et défis de fiabilité/sécurité.</li>
+        <li><strong>Modbus TCP/IP sur Ethernet (OSI 1-7) :</strong> Une variante distincte de Modbus. Elle encapsule les messages Modbus directement dans TCP/IP (OSI 3/4) et utilise <strong>Ethernet (OSI 1)</strong>. Offre un haut débit, s'intègre aux réseaux IT et permet un accès distant. C'est la norme pour les grandes installations connectées.</li>
+      </ul>
+
+      <h3>3.6. Détails de la Trame UART Série</h3>
+      <p>Pour une communication UART Modbus RTU, chaque octet est encodé avec :</p>
+      <ul>
+        <li><strong>1 bit de start (0) :</strong> Indique le début de la transmission d'un caractère.</li>
+        <li><strong>8 bits de données :</strong> Les octets Modbus eux-mêmes.</li>
+        <li><strong>1 bit de stop (1) :</strong> Indique la fin du caractère.</li>
+        <li><strong>Délai inter-trame (3.5T) :</strong> Un silence d'au moins 3,5 caractères de temps (`3.5 * (10 bits / baud rate)`) marque la fin d'une trame Modbus complète et le début potentiel d'une nouvelle.</li>
+        <li><strong>Calcul du CRC Modbus :</strong> Le <strong>CRC-16 Modbus</strong> est une somme de contrôle ajoutée à la fin de chaque trame pour garantir son intégrité. Si le CRC reçu ne correspond pas au CRC calculé par le récepteur, la trame est considérée comme corrompue et ignorée.</li>
       </ul>
 <br>
+ <img src="image/graph.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
+ <br>
+  
 
- <h2>10. Extensions possibles</h2>
+      <h2>4. Implémentation ESP32 : Le Code (Lien code : <a href="https://github.com/0xRevSec/Modbus_RTU.git">github.com</a>)</h2>
+      <p>Cette section décrit la structure du code et son fonctionnement sur les deux ESP32, maître et esclave.</p>
 
-<h3>1. Gestion d’erreurs &amp; timeouts</h3>
-<p>
-  Dans une communication Modbus, il est essentiel de détecter et gérer les erreurs comme les trames corrompues, les adresses non reconnues, ou l’absence de réponse d’un esclave.  
-  Les timeouts (délai d’attente) permettent de ne pas rester bloqué si l’esclave ne répond pas. Cela rend la communication plus robuste et fiable.
-</p>
+      <h3>4.1. Structure des Fichiers du Projet</h3>
+      <p>Pour une organisation claire, notre projet est structuré en plusieurs fichiers :</p>
+      <ul>
+        <li><strong>Dossier <code>include/</code> :</strong> Contient les définitions et fonctions réutilisables.
+          <ul>
+            <li><code>modbus_master.h</code> : Fonctions Modbus pour l'ESP32 maître (client).</li>
+            <li><code>modbus_slave.h</code> : Fonctions Modbus pour l'ESP32 esclave (serveur).</li>
+            <li><code>moteur.h</code> : Fonctions de bas niveau pour contrôler le moteur.</li>
+            <li><code>temperature.h</code> : Fonction pour lire la température.</li>
+          </ul>
+        </li>
+        <li><strong>À la racine du projet :</strong> Les fichiers de code principal.
+          <ul>
+            <li><code>master.cpp</code> : Le programme principal pour l'ESP32 agissant en <strong>maître Modbus</strong> et hébergeant le <strong>serveur web</strong>.</li>
+            <li><code>slave.cpp</code> : Le programme principal pour l'ESP32 agissant en <strong>esclave Modbus</strong>, gérant le moteur et la sonde de température.</li>
+          </ul>
+        </li>
+      </ul>
 
-<h3>2. Support de plusieurs registres &amp; fonctions</h3>
-<p>
-  Le protocole Modbus propose plusieurs fonctions (lecture/écriture de registres, coils, etc.).  
-  Étendre le code pour gérer plusieurs registres et fonctions permet d’échanger plus de types de données, piloter plusieurs équipements, ou avoir une supervision plus complète.
-</p>
+      <h3>4.2. Le Côté Esclave (<code>slave.cpp</code> et <code>modbus_slave.h</code>)</h3>
+      <p>L'ESP32 esclave représente un équipement industriel distant. Il attend des commandes Modbus sur le bus série pour agir (piloter le moteur) ou fournir des données (température).</p>
 
-<h3>3. Migration vers RS‑485 pour multi‑drop</h3>
-<p>
-  RS‑485 permet de connecter plusieurs esclaves (plus de 2) sur un même bus physique (multi-drop).  
-  Cela permet de déployer un réseau Modbus industriel avec plusieurs équipements, sur de longues distances et dans des environnements bruyants grâce à la transmission différentielle.
-</p>
+      <h4><code>slave.cpp</code> : Le Cœur de l'Esclave</h4>
+      <p>Ce fichier gère la logique principale de l'esclave :</p>
+      <ul>
+        <li><strong>Initialisation (<code>setup</code>) :</strong> Configure le port série USB pour le débogage (<code>Serial.begin(115200)</code>). Configure le <strong>port série UART 1</strong> de l'ESP32 (<code>modbus.begin(9600, SERIAL_8N1, 16, 17)</code>) pour la communication Modbus sur les GPIO 16 (RX) et 17 (TX). Initialise les broches du moteur (<code>moteur_init()</code>) et la résolution de l'ADC pour la température (<code>analogReadResolution(12)</code>).</li>
+        <li><strong>Boucle Principale (<code>loop</code>) : Traitement des Requêtes Modbus :</strong>
+          <ul>
+            <li>Attend un minimum de 8 octets sur le port Modbus (<code>modbus.available() < 8</code>).</li>
+            <li>Lit la requête entrante (<code>modbus.readBytes(req, 8)</code>).</li>
+            <li>Effectue une <strong>validation cruciale</strong> : vérifie l'ID de l'esclave (<code>req[0] != SLAVE_ID</code>) et le <strong>CRC</strong> de la trame (<code>crcReq != calcCRC(req, 6)</code>). Une requête invalide est ignorée.</li>
+            <li>Extrait le code de fonction Modbus (<code>func = req[1]</code>) et l'adresse du registre (<code>reg = (req[2] << 8) | req[3]</code>).</li>
+            <li><strong>Gestion de la Lecture de Température (Fonction 0x03, Registre <code>REG_TEMP</code>) :</strong>
+              <ul>
+                <li>Appelle <code>lire_temperature()</code> pour obtenir la valeur.</li>
+                <li>Met la température à l'échelle (<code>int(t * 10)</code>) et la convertit en un entier sur 16 bits.</li>
+                <li>Construit manuellement la **trame de réponse Modbus** incluant l'ID de l'esclave, le code de fonction, le nombre d'octets de données, les deux octets de la valeur, et le CRC calculé.</li>
+                <li>Envoie la réponse sur le bus Modbus (<code>modbus.write(rsp, 7)</code>).</li>
+              </ul>
+            </li>
+            <li><strong>Gestion de la Commande Moteur (Fonction 0x06, Registre <code>REG_MOTOR</code>) :</strong>
+              <ul>
+                <li>Extrait la valeur de commande (<code>val</code>) de la requête.</li>
+                <li>Applique une logique simple : `0` pour arrêter (<code>moteur_stop()</code>), `1-500` pour avancer (<code>moteur_avance()</code>), `>500` pour reculer (<code>moteur_recule()</code>).</li>
+                <li>Envoie un écho de la requête comme réponse standard pour la fonction 0x06 (<code>modbus.write(req, 8)</code>).</li>
+              </ul>
+            </li>
+            <li>`sendException(modbus, func, 0x02);` : Si la requête n'est pas reconnue ou est mal formée, une **réponse d'exception Modbus** (ici, "Adresse de donnée illégale") est envoyée au maître.</li>
+          </ul>
+        </li>
+      </ul>
 
-<h3>4. Intégration dans un réseau supervisé (MQTT, OPC UA…)</h3>
-<p>
-  Ces protocoles modernes (MQTT, OPC UA) permettent de connecter les automates Modbus à des systèmes de supervision et IoT plus larges, facilitant la collecte de données, la gestion à distance, et l’intégration dans des architectures Cloud ou industrielles.
-</p>
+      <h4><code>modbus_slave.h</code> : Outils Modbus pour l'Esclave</h4>
+      <p>Ce fichier fournit les définitions et fonctions génériques :</p>
+      <ul>
+        <li><code>SLAVE_ID</code>, <code>REG_TEMP</code>, <code>REG_MOTOR</code> : Constantes définissant l'ID de l'esclave (1) et les adresses des registres (0x0001 pour température, 0x0002 pour moteur).</li>
+        <li><code>calcCRC(const uint8_t* data, size_t len)</code> : Fonction essentielle pour le calcul du **CRC-16 Modbus**, utilisée pour valider l'intégrité des trames.</li>
+        <li><code>sendException(...)</code> : Fonction pour formater et envoyer une trame d'exception Modbus en cas d'erreur.</li>
+      </ul>
 
-<h2>Projeter d’essayer de hacker le système</h2>
-<p>
-  Ce projet peut aussi servir de base pour comprendre comment un système Modbus RTU peut être attaqué ou piraté :
-</p>
-<ul>
-  <li>Injection de trames malveillantes, falsification de données</li>
-  <li>Attaques par déni de service (bloquer la communication)</li>
-  <li>Usurpation d’identité (maître ou esclave)</li>
-  <li>Analyse des trames pour découvrir des vulnérabilités</li>
-</ul>
-<p>
-  Comprendre ces risques permet d’améliorer la sécurité des systèmes industriels.
-</p>
+      <h4><code>moteur.h</code> et <code>temperature.h</code> : Abstraction Matérielle</h4>
+      <p>Ces fichiers contiennent des fonctions simples pour abstraire les interactions matérielles :</p>
+      <ul>
+        <li><code>moteur.h</code> : `moteur_init()`, `moteur_avance()`, `moteur_recule()`, `moteur_stop()` pour le contrôle du moteur.</li>
+        <li><code>temperature.h</code> : `lire_temperature()` pour la lecture et conversion de la température du thermistor.</li>
+      </ul>
 
-<h2>Différence avec le vrai Modbus RS‑485 industriel</h2>
+      <h3>4.3. Le Côté Maître (<code>master.cpp</code> et <code>modbus_master.h</code>)</h3>
+      <p>L'ESP32 maître est le "cerveau" du système. Il agit comme un serveur web recevant des commandes d'un navigateur, puis traduit ces commandes en requêtes Modbus pour l'esclave.</p>
 
-<h3>Matériel :</h3>
-<p>
-  Ici, on utilise une liaison UART‑TTL directe (câbles Dupont entre ESP32), ce qui limite la distance (≤5 m) et les nœuds (2 max).<br>
-  Le vrai Modbus industriel utilise RS‑485, un bus différentiel robuste, permettant des distances jusqu’à 1200 m et plusieurs esclaves sur un même bus (multi-drop).
-</p>
+      <h4><code>master.cpp</code> : Le Cœur du Maître et du Serveur Web</h4>
+      <p>Ce fichier orchestre la connectivité Wi-Fi, le serveur web et l'interface avec le bus Modbus.</p>
+      <ul>
+        <li><strong>Initialisation (<code>setup</code>) :</strong> Initialise le débogage série (<code>Serial.begin(115200)</code>). Connecte l'ESP32 au réseau Wi-Fi (<code>WiFi.begin(ssid, password)</code>) pour rendre le serveur web accessible. Configure le port série UART 1 pour Modbus (<code>modbus.begin(9600, SERIAL_8N1, 16, 17)</code>) avec les mêmes paramètres que l'esclave.
+          <ul>
+            <li><code>modbusMutex = xSemaphoreCreateMutex();</code> : **Crucial pour la gestion de la concurrence !** Un **mutex (sémaphore binaire)** est créé pour garantir que seul un seul processus (une requête web à la fois) accède au bus Modbus, évitant ainsi la corruption des données.</li>
+            <li>Configure les routes HTTP du serveur web (ex: `/modbus/start` appelle `handleModbusStart()`). Le serveur est ensuite démarré (<code>server.begin()</code>).</li>
+          </ul>
+        </li>
+        <li><strong>Boucle Principale (<code>loop</code>) : Gestion du Serveur Web :</strong> `server.handleClient();` est la ligne principale qui surveille les requêtes HTTP entrantes et appelle les fonctions de gestion appropriées.</li>
+        <li><strong>Fonctions de Gestion des Requêtes Web (Handlers) :</strong>
+          <ul>
+            <li>Ces fonctions sont appelées par le serveur web lorsque des requêtes HTTP spécifiques sont reçues. Elles utilisent le mutex pour gérer l'accès au bus Modbus.</li>
+            <li>`handleModbusStart()` :
+              <ul>
+                <li>Tente d'acquérir le mutex (<code>xSemaphoreTake(modbusMutex, ...)</code>). Si le bus est occupé, renvoie un code d'état 503.</li>
+                <li>Analyse le paramètre `vitesse` de la requête web.</li>
+                <li>Appelle `modbusWriteRegister()` pour envoyer la commande Modbus à l'esclave.</li>
+                <li>Libère le mutex (<code>xSemaphoreGive(modbusMutex)</code>).</li>
+              </ul>
+            </li>
+            <li>`handleModbusStop()` : Similaire, mais envoie une commande d'arrêt moteur.</li>
+            <li>`handleTemp()` :
+              <ul>
+                <li>Acquiert le mutex.</li>
+                <li>Appelle `modbusReadRegister()` pour lire la température brute de l'esclave.</li>
+                <li>Libère le mutex.</li>
+                <li>Convertit la valeur brute en température réelle et renvoie une réponse JSON au navigateur web.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
 
-<h3>Robustesse :</h3>
-<p>
-  Le RS‑485 est conçu pour résister au bruit électrique industriel, grâce à la transmission différentielle.<br>
-  UART-TTL direct est plus sensible au bruit, moins fiable dans un vrai environnement industriel.
-</p>
+      <h4><code>modbus_master.h</code> : Outils Modbus pour le Maître</h4>
+      <p>Ce fichier fournit les fonctions clés permettant au maître d'interagir avec le bus Modbus :</p>
+      <ul>
+        <li><code>SLAVE_ID</code>, <code>REG_TEMP</code>, <code>REG_MOTOR</code> : Mêmes définitions que côté esclave pour la cohérence.</li>
+        <li><code>calcCRC(...)</code> : La même fonction de calcul du CRC-16 est présente.</li>
+        <li><code>modbusWriteRegister(...)</code> : Construit et envoie une requête Modbus "Write Single Register" (fonction 0x06). Attend la réponse de l'esclave avec un **timeout** (500ms) et valide la réponse reçue (CRC, ID, fonction, et les données d'écho).</li>
+        <li><code>modbusReadRegister(...)</code> : Construit et envoie une requête Modbus "Read Holding Registers" (fonction 0x03). Attend la réponse avec timeout, valide la réponse, et extrait la valeur lue.</li>
+      </ul>
 
-<h3>Topologie :</h3>
-<p>
-  UART-TTL : point-à-point (maître ↔ esclave unique).<br>
-  RS‑485 : multi-drop (un maître, plusieurs esclaves sur le même bus).
-</p>
 
-<h3>Protocoles et timing :</h3>
-<p>
-  Le protocole Modbus RTU reste identique sur UART-TTL ou RS‑485, les trames, fonctions et timing ne changent pas.<br>
-  Cependant, la gestion matérielle du bus (activation/désactivation des émetteurs via DE/RE sur RS‑485) est spécifique à RS‑485.
-  A l'avenir, nous allons ajouter un convertisseur rs485. Nous allons egalement analyser les trames avec un analyseur logique et essayer de detecter manuellement et automatiquement la trame lecture temperature. Nous allons egalement sniffer le traffic reseau 
-  pour identifier le paquet wifi du pc vers esp32 (HTP).
-</p>
-<br><br>
-Lien ressources : <a href="https://github.com/0xRevSec/Modbus_RTU.git"><strong>github.com/0xRevSec/Modbus_RTU.git</strong></a>
-    </article>
-  </main>
 
-  <div id="footer-placeholder"></div>
+      <h2>5. Supervision : L'Interface Homme-Machine (IHM) Python</h2>
+      <p>Cette partie du projet est essentielle car elle constitue l'<strong>Interface Homme-Machine (IHM)</strong>. C'est un script <strong>Python</strong> qui s'exécute sur un ordinateur et qui dialogue avec le **serveur web embarqué sur l'ESP32 Maître**. Son objectif est de fournir un moyen visuel et interactif pour surveiller la température et contrôler le moteur à distance.</p>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      fetch("nav.html")
-        .then(r => r.text())
-        .then(html => document.getElementById("nav-placeholder").innerHTML = html);
-      fetch("footer.html")
-        .then(r => r.text())
-        .then(html => document.getElementById("footer-placeholder").innerHTML = html);
-    });
-  </script>
+      <h3>5.1. Fonctionnalités Clés du Script de Supervision</h3>
+      <p>Le script Python est conçu pour être un tableau de bord en temps réel :</p>
+      <ul>
+        <li><strong>Interaction avec l'ESP32 Maître :</strong> La constante <code>ESP32_IP = "192.168.1.29"</code> définit l'adresse IP de l'ESP32 Maître, vers laquelle toutes les requêtes HTTP sont envoyées.</li>
+        <li><strong>Lecture de la Température (<code>get_temperature()</code> et <code>read_data()</code>) :</strong>
+          <ul>
+            <li><code>get_temperature()</code> interroge l'ESP32 Maître via HTTP GET (<code>http://&lt;ESP32_IP&gt;/temp</code>). Elle inclut un **mécanisme de re-tentative** et gère le code de statut **503 (Bus Modbus occupé)** envoyé par l'ESP32, en réessayant après un court délai sans afficher d'erreur immédiate.</li>
+            <li>La réponse JSON est parsée pour extraire la température, et `read_data()` met à jour l'affichage dans l'IHM.</li>
+          </ul>
+        </li>
+        <li><strong>Commandes Moteur (<code>start_motor()</code> et <code>stop_motor()</code>) :</strong>
+          <ul>
+            <li><code>start_motor()</code> récupère la vitesse d'un curseur Tkinter, construit une URL avec ce paramètre (<code>http://&lt;ESP32_IP&gt;/modbus/start?vitesse=&lt;valeur&gt;</code>), envoie la requête HTTP, et met à jour l'état visuel du moteur (🟢 MARCHE / ⚠️ Erreur) en fonction de la réponse HTTP.</li>
+            <li><code>stop_motor()</code> envoie une requête HTTP à <code>http://&lt;ESP32_IP&gt;/modbus/stop</code> pour arrêter le moteur.</li>
+          </ul>
+        </li>
+        <li><strong>Mise à Jour Automatique (<code>auto_update()</code>) :</strong> La ligne `root.after(2000, auto_update)` programme un rafraîchissement périodique des mesures toutes les 2 secondes, offrant une supervision "en direct".</li>
+      </ul>
+
+      <h3>5.2. Interface Graphique Utilisateur (GUI) avec Tkinter</h3>
+      <p>Le script utilise la bibliothèque <strong>Tkinter</strong> pour construire l'interface visuelle :</p>
+      <ul>
+        <li><strong>Fenêtre Principale (<code>root = tk.Tk()</code>) :</strong> Crée la fenêtre de l'application.</li>
+        <li><strong>Éléments d'Affichage :</strong> Des <code>tk.Label</code> pour le titre, la température et l'état du moteur. Un <code>tk.Scale</code> (curseur) permet de sélectionner la vitesse du moteur.</li>
+        <li><strong>Boutons de Commande :</strong> Des <code>tk.Button</code> pour "Lancer le moteur", "Arrêter le moteur" et "Rafraîchir mesures", chacun lié à sa fonction Python.</li>
+        <li><strong>Stylisation :</strong> Utilisation de paramètres comme `bg` (couleur de fond), `fg` (couleur du texte) et `font` pour l'esthétique.</li>
+        <li><strong>Boucle Principale de l'IHM (<code>root.mainloop()</code>) :</strong> Lance la boucle d'événements Tkinter, gérant les interactions utilisateur et les mises à jour de l'interface.</li>
+      </ul>
+
+      <h3>5.3. Flux de Données et Contrôle</h3>
+      <p>Le script de supervision Python complète la chaîne de communication :</p>
+      <ol>
+        <li>L'utilisateur interagit avec l'IHM Python.</li>
+        <li>Le script Python envoie des requêtes <strong>HTTP</strong> à l'<strong>ESP32 Maître</strong>.</li>
+        <li>L'ESP32 Maître (serveur web) interprète ces requêtes.</li>
+        <li>L'ESP32 Maître traduit les commandes HTTP en requêtes <strong>Modbus RTU</strong> et les envoie via UART-TTL à l'<strong>ESP32 Esclave</strong>.</li>
+        <li>L'ESP32 Esclave lit la température ou pilote le moteur.</li>
+        <li>L'ESP32 Esclave envoie des réponses Modbus RTU à l'ESP32 Maître.</li>
+        <li>L'ESP32 Maître (client web) formate ces réponses Modbus et les renvoie en tant que réponses <strong>HTTP</strong> au script Python.</li>
+        <li>Le script Python met à jour l'IHM pour refléter l'état du système.</li>
+      </ol>
+
+ <br>
+     <img src="image/supervision.png" alt="Schéma de câblage Modbus" style="max-width: 85%; height: auto; display: block;">
+         <p><em>Supervision (Moteur en marche/Arrette)</em>
+
+ 
+
+
+      <h2>6. Sniffing des Trames et Analyse Réseau</h2>
+
+      <h3>6.1. Sniffing des Trames UART avec un Analyseur Logique</h3>
+      <p>Pour une compréhension approfondie du protocole Modbus RTU sur UART-TTL, l'utilisation d'un <strong>analyseur logique</strong> est un outil de débogage et d'analyse indispensable.</p>
+      <ul>
+        <li><strong>Branchement :</strong> Connectez l'analyseur logique aux broches <strong>TX et RX</strong> de chaque ESP32 (et au GND commun). Ça vous permet de capturer les signaux électriques échangés sur le bus série en temps réel.</li>
+        <li><strong>Décodage UART et Visualisation :</strong> Configurez le décodeur UART de votre analyseur logique avec les bons paramètres : **9600 bauds, 8N1** (8 bits de données, pas de parité, 1 bit de stop). L'analyseur affichera chaque octet capturé en **hexadécimal**, ce qui vous permettra de visualiser directement la séquence des octets de la trame Modbus. C'est parfait pour vérifier la conformité des trames envoyées et reçues par vos ESP32.</li>
+        <li><strong>Synchronisation des Trames :</strong> Le décodeur UART de l'analyseur logique utilise le **silence inter-trame (≥ 3,5T)** pour délimiter automatiquement les trames Modbus complètes. Ça facilite grandement leur lecture et leur analyse, en vous aidant à distinguer clairement les requêtes des réponses.</li>
+        <li><strong>Identification Manuelle des Octets Modbus :</strong> Avec la visualisation hexadécimale, vous pouvez vérifier manuellement que l'adresse de l'esclave, le code de fonction, les données et le CRC correspondent aux spécifications du protocole Modbus RTU. C'est crucial pour valider le bon fonctionnement de votre implémentation et diagnostiquer d'éventuels problèmes de communication.</li>
+      </ul>
+
+      <h3>6.2. Sniffing du Trafic HTTP Wi-Fi avec Wireshark (Supervision)</h3>
+      <p>Étant donné que la supervision de notre système passe par une communication **HTTP non chiffrée** sur le réseau Wi-Fi, il est possible d'observer et d'analyser ce trafic à l'aide d'un outil comme **Wireshark**.</p>
+      <ul>
+        <li><strong>Capture de Paquets :</strong> Utilisez Wireshark sur un PC connecté au même réseau Wi-Fi que l'ESP32 maître. Lancez une capture sur votre interface Wi-Fi. Vous pourrez alors voir tous les paquets transitant entre votre PC (exécutant l'IHM Python) et l'ESP32 maître.</li>
+        <li><strong>Analyse des Requêtes et Réponses HTTP :</strong> Dans Wireshark, filtrez le trafic pour n'afficher que les paquets HTTP (par exemple, en tapant `http` dans la barre de filtre). Vous pourrez inspecter le contenu des requêtes GET (pour lire la température, par exemple) et les réponses JSON envoyées par l'ESP32.</li>
+        <li><strong>Identification des Données en Clair :</strong> Cette analyse démontrera que les commandes (comme la vitesse du moteur) et les données (la température) sont transmises en clair sur le réseau. C'est une vulnérabilité majeure en cybersécurité, soulignant l'importance du chiffrement (HTTPS) pour protéger les informations sensibles.</li>
+      </ul>
+<a href="image/get_temp_request.png" target="_blank">
+    <img src="image/get_temp_request.png" alt="Requête HTTP GET température" style="max-width: 100%;">
+</a>
+<p><em>Capture wireshark requête GET température</em></p>
+<br>
+
+
+<a href="image/get_temp_response.png" target="_blank">
+    <img src="image/get_temp_response.png" alt="Réponse HTTP GET température" style="max-width: 100%;">
+</a>
+<p><em>Capture wireshark réponse GET température</em></p>
+<br>
+  <h2>11. Extraction et Analyse du Firmware ESP32</h2>
+
+  <h3>11.1. Dump du firmware via esptool.py</h3>
+  <p>Pour lire la mémoire flash de l’ESP32 et en extraire le firmware, utilisez <code>esptool.py</code> :</p>
+  <pre class="linenums"><code>
+# Installer esptool si besoin
+pip install esptool
+
+# Lire 4 Mo de flash (ajustez la taille selon votre ESP32)
+esptool.py --port /dev/ttyUSB0 read_flash 0x00000 0x400000 firmware.bin
+  </code></pre>
+<a href="image/extraction_ok.png" target="_blank">
+    <img src="image/extraction_ok.png" alt="hxd" style="max-width: 100%;">
+</a>
+<p><em>Extraction</em></p>
+<br>
+  <h3>11.2. Ouverture du binaire avec HxD</h3>
+  <p>Ouvrez <code>firmware.bin</code> dans l’éditeur hexadécimal HxD (Windows) :</p>
+  <ul>
+    <li>Fichier → Ouvrir → sélectionnez <code>firmware.bin</code>.</li>
+    <li>Activez « Affichage texte » pour voir à droite la colonne ASCII.</li>
+  </ul>
+
+<a href="image/data.png" target="_blank">
+    <img src="image/data.png" alt="hxd" style="max-width: 100%;">
+</a>
+<p><em>Binaire</em></p>
+<br>
+ 
+
+      <h2>7. Perspectives d'Évolution</h2>
+      <p>Ce projet de base ouvre la voie à de nombreuses améliorations pour le rendre plus robuste et adapté à un environnement industriel réel.</p>
+
+      <h3>7.1. Migration vers RS-485 (bus différentiel)</h3>
+      <ul>
+        <li>Ajout de modules **MAX485** ou équivalents sur chaque ESP32 pour convertir les signaux TTL en RS-485. Cela implique la gestion de la broche DE/RE (Data Enable/Receive Enable) pour contrôler la direction de la transmission.</li>
+        <li>La migration vers le **RS-485** permettra une communication fiable sur de **plus longues distances** et la mise en place d'une **topologie multi-drop** (plusieurs esclaves sur le même bus).</li>
+      </ul>
+
+      <h3>7.2. Support multi-registres et multi-fonctions</h3>
+      <ul>
+        <li>Actuellement, le projet ne gère que la lecture d'un seul registre (température, fonction 0x03) et l'écriture d'un seul registre (moteur, fonction 0x06). L'implémentation de fonctions Modbus supplémentaires, comme l'**écriture de registres multiples (0x10)** ou la **lecture d'entrées discrètes (0x02)**, rendrait le système plus polyvalent.</li>
+      </ul>
+
+      <h3>7.3. Gestion d’erreurs et timeout</h3>
+      <ul>
+        <li>Améliorer la robustesse du maître en implémentant des mécanismes de **retransmissions** en cas de non-réponse de l'esclave ou de réponse invalide.</li>
+        <li>Mettre en place un **journal d'erreurs** détaillé pour faciliter le débogage et la maintenance.</li>
+      </ul>
+
+      <h3>7.4. Intégration réseau (MQTT, OPC UA)</h3>
+      <ul>
+        <li>Pour une intégration plus poussée dans des systèmes d'information industriels (IIoT), l'ESP32 maître pourrait être étendu pour :
+          <ul>
+            <li>Publier les mesures (température, état moteur) via le protocole **MQTT** vers un courtier.</li>
+            <li>Agir comme un client **OPC UA** pour s'intégrer à des systèmes SCADA industriels.</li>
+          </ul>
+        </li>
+      </ul>
+
+
+      <h2>7. Sécurité &amp; Hacking Modbus</h2>
+      <p>La simplicité de Modbus, bien que bénéfique, le rend également vulnérable si des mesures de sécurité ne sont pas prises, surtout lorsqu'il est connecté à un réseau IP.</p>
+
+      <h3>7.1. Menaces Modbus : injection, spoofing</h3>
+      <ul>
+        <li><strong>Injection de trames malveillantes :</strong> Un attaquant ayant accès au bus Modbus (physiquement ou via un réseau non sécurisé) pourrait injecter de fausses commandes pour falsifier les données ou piloter les équipements de manière non autorisée.</li>
+        <li><strong>Spoofing :</strong> Un attaquant pourrait se faire passer pour un maître ou un esclave légitime pour intercepter ou manipuler la communication.</li>
+      </ul>
+
+      <h3>7.2. Attaques par déni de service</h3>
+      <ul>
+        <li>L'**inondation du bus** avec un grand nombre de requêtes ou de données inutiles peut saturer la liaison et bloquer la communication légitime, entraînant un déni de service du système de contrôle.</li>
+      </ul>
+
+      <h3>7.3. Analyse passive des trames UART</h3>
+      <ul>
+        <li>Le **sniffing** avec un **analyseur logique** sur les broches TX/RX permet à un attaquant d'observer passivement le flux de données Modbus, de comprendre la logique de communication et d'identifier les registres critiques sans altérer le fonctionnement. Cette technique est souvent utilisée pour la reconnaissance avant une attaque.</li>
+      </ul>
+
+      <h3>7.4. Sniffing réseau Wi-Fi HTTP (supervision)</h3>
+      <ul>
+        <li>Étant donné que la supervision utilise une communication Wi-Fi **HTTP non chiffrée**, un outil comme **Wireshark** peut facilement **capturer les paquets HTTP** entre le PC et l'ESP32 maître. Cela exposerait les commandes (ex: vitesse moteur) et les données (température) en clair, posant un risque de confidentialité et d'intégrité si l'accès au réseau Wi-Fi n'est pas sécurisé. L'analyse des entêtes et du contenu des requêtes HTTP est cruciale pour identifier d'éventuelles vulnérabilités.</li>
+      </ul>
+ 
+
+
+
+
+      <h2>10. Conclusion Générale</h2>
+
+      <h3>10.1. Bilan du projet</h3>
+      <p>Ce projet a permis le déploiement complet d'un système Modbus RTU bas-niveau entre deux ESP32, incluant une analyse approfondie de la couche physique et liaison. Il a également mis en lumière l'intégration d'une interface de supervision web, complétant ainsi une chaîne de commande et de mesure de bout en bout.</p>
+
+      <h3>10.2. Limites de la version UART directe</h3>
+      <p>La version actuelle, utilisant l'UART-TTL direct, présente des limites notables : une **portée limitée** (≤ 5 mètres), une restriction à deux nœuds seulement, et une sensibilité inhérente au bruit et aux interférences.</p>
+
+      <h3>10.3. Intégration possible de tout type d’E/S</h3>
+      <p>Le cœur du protocole Modbus est sa polyvalence. Le système développé peut être étendu pour intégrer tout type d'entrées/sorties (E/S) industrielles : capteurs de pression, de niveau, de débit, relais, variateurs de vitesse, LEDs, et tout autre module lisible ou commandable via Modbus.</p>
+
+      <h3>10.4. Ouvertures industrielles : robustesse, cybersécurité</h3>
+      <p>Pour une application industrielle réelle, des évolutions sont indispensables :</p>
+      <ul>
+        <li>La migration vers le **RS-485** est cruciale pour la robustesse et la capacité à gérer un bus multi-drop avec de nombreux esclaves.</li>
+        <li>Le renforcement de la **cybersécurité** (chiffrement des communications, authentification des appareils) est impératif pour protéger le système contre les menaces.</li>
+      </ul>
+ </article>
+
+    </main>
+<div id="footer-placeholder"></div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Charger nav
+  fetch("nav.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("nav-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement nav :", err));
+
+  // Charger footer
+  fetch("footer.html")
+    .then(resp => resp.text())
+    .then(html => {
+      document.getElementById("footer-placeholder").innerHTML = html;
+    })
+    .catch(err => console.error("Erreur chargement footer :", err));
+});
+
+  
+</script>
+
 </body>
-</html>

@@ -75,6 +75,10 @@ h1, h2 {
   margin-top: 0;
 }
 
+h3{
+  font-family: 'Georgia',
+}
+
 section.project,
 section.tools,
 section.tutorials,
@@ -110,6 +114,31 @@ section.presentation {
   width: 100%;
 }
 
+/* ... your existing CSS ... */
+
+/* Alléger le style du texte de l'article */
+.article {
+  font-family: Arial, sans-serif;
+  font-weight: 400;       /* police normale, pas bold */
+  font-size: 1em;         /* revenir à la taille par défaut */
+  line-height: 1.6;       /* espace un peu plus généreux */
+  color: #333;            /* ton de gris doux pour le texte */
+}
+
+/* Pour les paragraphes et listes, on peut encore alléger un peu */
+.article p,
+.article li {
+  font-weight: 300;       /* ultra-léger si la police le permet */
+  margin-bottom: 1em;     /* plus d'air entre les paragraphes */
+}
+
+/* Si certains titres sont trop « épais », on peut les ajuster aussi */
+.article h2, 
+.article h3 {
+  font-weight: 600;       /* semi-bold au lieu de bold */
+}
+
+
 .article img {
   max-width: 100%; /* l'image ne dépasse jamais la largeur de son conteneur */
   height: auto;    /* pour garder les proportions */
@@ -117,6 +146,7 @@ section.presentation {
   margin: 1em 0;   /* un peu d’espace vertical si tu veux */
 }
 
+/* ... rest of your existing CSS ... */
 
 
 footer {
