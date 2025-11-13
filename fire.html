@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simulation SDAI complète - Voyants distincts</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  h2 {
+    margin-top: 30px;
+  }
+  .central {
+    border: 2px solid #333;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+  }
+  .voyants {
+    margin: 12px 0 18px 0;
+    display: flex;
+    gap: 18px;
+  }
+  .voyant {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    cursor: default;
+    user-select: none;
+  }
+  .light {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #aaa;
+    box-shadow: inset 0 0 5px #666;
+  }
+  .light.alarm {
+    background: #f44336; /* rouge */
+    box-shadow: 0 0 8px #f44336;
+  }
+  .light.derangement {
+    background: #ff9800; /* orange */
+    box-shadow: 0 0 8px #ff9800;
+  }
+  .light.asservissement {
+    background: #2196f3; /* bleu */
+    box-shadow: 0 0 8px #2196f3;
+  }
+  .indicator {
+    font-weight: bold;
+    font-size: 1.3em;
+    padding: 5px 10px;
+    border-radius: 6px;
+    width: max-content;
+    margin-bottom: 15px;
+  }
+  .indicator.normal {
+    background-color: #4caf50;
+    color: white;
+  }
+  .indicator.degrade {
+    background-color: #ff9800;
+    color: white;
+  }
+  .indicator.critique {
+    background-color: #f44336;
+    color: white;
+  }
+  .cpu {
+    padding: 8px 12px;
+    margin: 6px 0;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    width: 200px;
+    user-select: none;
+  }
+  .cpu.normal {
+    background-color: #4caf50;
+  }
+  .cpu.suspect {
+    background-color: #ff9800;
+    animation: blink 1s infinite;
+  }
+  .cpu.off {
+    background-color: #f44336;
+  }
+  @keyframes blink {
+    0%, 100% {opacity: 1;}
+    50% {opacity: 0.5;}
+  }
+  .detector, .button {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .detector.normal {
+    background-color: #ddd;
+    color: #333;
+  }
+  .detector.alarm {
+    background-color: #f44336;
+    color: white;
+  }
+  .button.normal {
+    background-color: #2196f3;
+    color: white;
+  }
+  .button.pressed {
+    background-color: #0b74d1;
+    color: white;
+  }
+  .cable {
+    margin: 10px 0;
+  }
+  .cable.connected {
+    color: #4caf50;
+    font-weight: bold;
+  }
+  .cable.cut {
+    color: #f44336;
+    font-weight: bold;
+  }
+  button.sim-btn {
+    margin: 6px 6px 6px 0;
+    padding: 6px 12px;
+    font-size: 0.9em;
+  }
+  #log {
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    height: 180px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f9f9f9;
+    font-family: monospace;
+    white-space: pre-line;
+  }
+</style>
+</head>
+<body>
+
+<h1>Simulation SDAI complète - Voyants distincts</h1>
+
+<div id="centrals-container"></div>
+
+<button onclick="resetSimulation()" class="sim-btn">Réinitialiser toute la simulation</button>
+
+<h3>Journal des événements (log)</h3>
+<div id="log"></div>
+
+<script>
+  // Constants et états
+  const STATES = {
+    NORMAL: "normal",
+    DEGRADE: "degrade",
+    CRITIQUE: "critique"
+  };
+
+  const CPU_STATUS = {
+    NORMAL: "normal",
+    SUSPECT: "suspect",
+    OFF: "off"
+  };
+
+  // Création des centrales
+  const centrales = {
+    1: {
+      id: 1,
+      name: "Securilan Centrale 1",
+      cpus: [
+        { id: "CPU1-1", badHeartbeats: 0, status: CPU_STATUS.NORMAL },
+        { id: "CPU1-2", badHeartbeats: 0, status: CPU_STATUS.NORMAL }
+      ],
+      detectors: [
+        { id: "D1-1", alarm: false },
+        { id: "D1-2", alarm: false },
+        { id: "D1-3", alarm: false }
+      ],
+      buttons: [
+        { id: "B1-1", pressed: false },
+        { id: "B1-2", pressed: false }
+      ],
+      cables: {
+        inputs: true
+      },
+      systemState: STATES.NORMAL,
+      alarmValidated: false,
+      derangementDetected: false,
+      asservissementActive: false
+    },
+    2: {
+      id: 2,
+      name: "Securilan Centrale 2",
+      cpus: [
+        { id: "CPU2-1", badHeartbeats: 0, status: CPU_STATUS.NORMAL },
+        { id: "CPU2-2", badHeartbeats: 0, status: CPU_STATUS.NORMAL }
+      ],
+      detectors: [
+        { id: "D2-1", alarm: false },
+        { id: "D2-2", alarm: false },
+        { id: "D2-3", alarm: false }
+      ],
+      buttons: [
+        { id: "B2-1", pressed: false },
+        { id: "B2-2", pressed: false }
+      ],
+      cables: {
+        inputs: true
+      },
+      systemState: STATES.NORMAL,
+      alarmValidated: false,
+      derangementDetected: false,
+      asservissementActive: false
+    }
+  };
+
+  // Logs
+  const logEl = document.getElementById("log");
+  function log(message) {
+    const time = new Date().toLocaleTimeString();
+    const line = `[${time}] ${message}`;
+    console.log(line);
+    logEl.textContent += line + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // Création affichage centrales dynamique
+  function createCentralUI(central) {
+    const container = document.createElement("div");
+    container.className = "central";
+    container.id = `central-${central.id}`;
+
+    const title = document.createElement("h2");
+    title.textContent = central.name;
+    container.appendChild(title);
+
+    // Voyants lumineux Alarme / Dérangement / Asservissement (un asservissement par centrale)
+    const voyantsDiv = document.createElement("div");
+    voyantsDiv.className = "voyants";
+
+    // Voyant Alarme
+    const alarmVoyant = document.createElement("div");
+    alarmVoyant.className = "voyant";
+    alarmVoyant.innerHTML = `<div id="voyant-alarm-${central.id}" class="light"></div><span>Alarme</span>`;
+    voyantsDiv.appendChild(alarmVoyant);
+
+    // Voyant Dérangement
+    const derangementVoyant = document.createElement("div");
+    derangementVoyant.className = "voyant";
+    derangementVoyant.innerHTML = `<div id="voyant-derangement-${central.id}" class="light"></div><span>Dérangement</span>`;
+    voyantsDiv.appendChild(derangementVoyant);
+
+    // Voyant Asservissement (1 par centrale)
+    const asservVoyant = document.createElement("div");
+    asservVoyant.className = "voyant";
+    asservVoyant.innerHTML = `<div id="voyant-asservissement-${central.id}" class="light"></div><span>Asservissement</span>`;
+    voyantsDiv.appendChild(asservVoyant);
+
+    container.appendChild(voyantsDiv);
+
+    // État système centrale (texte global)
+    const stateIndicator = document.createElement("div");
+    stateIndicator.id = `central-state-${central.id}`;
+    stateIndicator.className = `indicator ${central.systemState}`;
+    stateIndicator.textContent = stateText(central.systemState);
+    container.appendChild(stateIndicator);
+
+    // CPUs
+    const cpuTitle = document.createElement("h3");
+    cpuTitle.textContent = "CPUs";
+    container.appendChild(cpuTitle);
+
+    central.cpus.forEach(cpu => {
+      const cpuEl = document.createElement("div");
+      cpuEl.id = cpu.id;
+      cpuEl.className = `cpu ${cpu.status}`;
+      cpuEl.textContent = `${cpu.id} - ${cpu.status.toUpperCase()}`;
+      container.appendChild(cpuEl);
+    });
+
+    // Câble entrée
+    const cableEl = document.createElement("div");
+    cableEl.id = `cable-input-${central.id}`;
+    cableEl.className = `cable ${central.cables.inputs ? "connected" : "cut"}`;
+    cableEl.textContent = `Câble Entrée: ${central.cables.inputs ? "CONNECTÉ" : "COUPÉ"}`;
+    container.appendChild(cableEl);
+
+    // Détecteurs
+    const detTitle = document.createElement("h3");
+    detTitle.textContent = "Détecteurs (clique pour activer/désactiver)";
+    container.appendChild(detTitle);
+
+    central.detectors.forEach(det => {
+      const detEl = document.createElement("div");
+      detEl.id = det.id;
+      detEl.className = `detector ${det.alarm ? "alarm" : "normal"}`;
+      detEl.textContent = `${det.id}`;
+      detEl.onclick = () => {
+        det.alarm = !det.alarm;
+        log(`${central.name} - ${det.id} : détecteur ${det.alarm ? "ACTIVÉ" : "DÉSACTIVÉ"}`);
+        updateCentralUI(central.id);
+        evaluateCentralState(central.id);
+      };
+      container.appendChild(detEl);
+    });
+
+    // Boutons manuels
+    const btnTitle = document.createElement("h3");
+    btnTitle.textContent = "Boutons manuels (clique pour presser/relâcher)";
+    container.appendChild(btnTitle);
+
+    central.buttons.forEach(btn => {
+      const btnEl = document.createElement("div");
+      btnEl.id = btn.id;
+      btnEl.className = `button ${btn.pressed ? "pressed" : "normal"}`;
+      btnEl.textContent = btn.id;
+      btnEl.onclick = () => {
+        btn.pressed = !btn.pressed;
+        log(`${central.name} - ${btn.id} : bouton ${btn.pressed ? "PRESSÉ" : "RELÂCHÉ"}`);
+        updateCentralUI(central.id);
+        evaluateCentralState(central.id);
+      };
+      container.appendChild(btnEl);
+    });
+
+    // Boutons simulation CPU heartbeat corrompu
+    const simCpuDiv = document.createElement("div");
+    simCpuDiv.style.marginTop = "12px";
+    central.cpus.forEach(cpu => {
+      const btn = document.createElement("button");
+      btn.textContent = `Simuler heartbeat corrompu ${cpu.id}`;
+      btn.className = "sim-btn";
+      btn.onclick = () => {
+        simulateCorruptedHeartbeat(central.id, cpu.id);
+      };
+      simCpuDiv.appendChild(btn);
+    });
+
+    // Bouton couper/rétablir câble entrée
+    const cableBtn = document.createElement("button");
+    cableBtn.textContent = central.cables.inputs ? "Couper câble entrée" : "Rétablir câble entrée";
+    cableBtn.className = "sim-btn";
+    cableBtn.onclick = () => {
+      centrales[central.id].cables.inputs = !centrales[central.id].cables.inputs;
+      log(`${central.name} : câble entrée ${centrales[central.id].cables.inputs ? "rétabli" : "coupé"}`);
+      updateCentralUI(central.id);
+      evaluateCentralState(central.id);
+    };
+    simCpuDiv.appendChild(cableBtn);
+
+    container.appendChild(simCpuDiv);
+
+    return container;
+  }
+
+  // Texte état système stylé
+  function stateText(state) {
+    if (state === STATES.NORMAL) return "🟢 NORMAL";
+    if (state === STATES.DEGRADE) return "🟠 DÉGRADÉ";
+    if (state === STATES.CRITIQUE) return "🔴 CRITIQUE";
+    return "ÉTAT INCONNU";
+  }
+
+  // Mise à jour visuelle centrale complète
+  function updateCentralUI(centralId) {
+    const c = centrales[centralId];
+
+    // Mise à jour voyants lumineux
+    updateVoyants(centralId);
+
+    // Etat système
+    const stateEl = document.getElementById(`central-state-${centralId}`);
+    stateEl.className = `indicator ${c.systemState}`;
+    stateEl.textContent = stateText(c.systemState);
+
+    // CPUs
+    c.cpus.forEach(cpu => {
+      const cpuEl = document.getElementById(cpu.id);
+      cpuEl.className = `cpu ${cpu.status}`;
+      cpuEl.textContent = `${cpu.id} - ${cpu.status.toUpperCase()}`;
+    });
+
+    // Câble
+    const cableEl = document.getElementById(`cable-input-${centralId}`);
+    cableEl.className = `cable ${c.cables.inputs ? "connected" : "cut"}`;
+    cableEl.textContent = `Câble Entrée: ${c.cables.inputs ? "CONNECTÉ" : "COUPÉ"}`;
+
+    // Détecteurs
+    c.detectors.forEach(det => {
+      const detEl = document.getElementById(det.id);
+      detEl.className = `detector ${det.alarm ? "alarm" : "normal"}`;
+    });
+
+    // Boutons
+    c.buttons.forEach(btn => {
+      const btnEl = document.getElementById(btn.id);
+      btnEl.className = `button ${btn.pressed ? "pressed" : "normal"}`;
+    });
+  }
+
+  // Mise à jour des voyants lumineux selon état central
+  function updateVoyants(centralId) {
+    const c = centrales[centralId];
+
+    // Voyant Alarme : activé si alarme validée (detecteurs >= 2 ou bouton pressé)
+    const alarmLight = document.getElementById(`voyant-alarm-${centralId}`);
+    if (c.alarmValidated) {
+      alarmLight.classList.add("alarm");
+    } else {
+      alarmLight.classList.remove("alarm");
+    }
+
+    // Voyant Dérangement : activé si CPU suspect/off ou câble coupé ou 1 détecteur activé
+    const derangementLight = document.getElementById(`voyant-derangement-${centralId}`);
+    if (c.derangementDetected) {
+      derangementLight.classList.add("derangement");
+    } else {
+      derangementLight.classList.remove("derangement");
+    }
+
+    // Voyant Asservissement : activé si asservissement actif (alarme validée et pas dérangement)
+    const asservLight = document.getElementById(`voyant-asservissement-${centralId}`);
+    if (c.asservissementActive) {
+      asservLight.classList.add("asservissement");
+    } else {
+      asservLight.classList.remove("asservissement");
+    }
+  }
+
+  // Fonction simulate heartbeat corrompu (sur CPU spécifique d'une centrale)
+  function simulateCorruptedHeartbeat(centralId, cpuId) {
+    const central = centrales[centralId];
+    const cpu = central.cpus.find(c => c.id === cpuId);
+    if (!cpu) return;
+
+    cpu.badHeartbeats++;
+    log(`${central.name} - ${cpu.id} : heartbeat CRC invalide (total erreurs: ${cpu.badHeartbeats})`);
+
+    // Gérer les états CPU en fonction du nombre d'erreurs
+    if (cpu.badHeartbeats === 1) {
+      // 1 erreur : log seul
+    } else if (cpu.badHeartbeats === 3) {
+      cpu.status = CPU_STATUS.SUSPECT;
+      log(`${central.name} - ${cpu.id} : CPU partenaire marqué SUSPECT (mode DÉGRADÉ)`);
+    } else if (cpu.badHeartbeats >= 5) {
+      cpu.status = CPU_STATUS.OFF;
+      log(`${central.name} - ${cpu.id} : CPU partenaire déclaré OFF (mode CRITIQUE)`);
+    }
+
+    // Mise à jour des états et affichage
+    updateCPUStatus(centralId);
+    evaluateCentralState(centralId);
+  }
+
+  // Mise à jour état CPU (en fonction des erreurs)
+  function updateCPUStatus(centralId) {
+    const c = centrales[centralId];
+
+    // Ici pas de changement de statut partenaire CPU (il reste normal)
+    // La gestion du relais CPU est implicite dans l'état global
+  }
+
+  // Évaluation état global centrale (alarme validée, dérangement, asservissement)
+function evaluateCentralState(centralId) {
+  const c = centrales[centralId];
+
+  const activeDetectorsCount = c.detectors.filter(d => d.alarm).length;
+
+  // Dérangement détecté si :
+  // - 1 détecteur actif (mais pas 2 ou plus)
+  // - CPU off/suspect
+  // - câble coupé
+  const anyCpuOff = c.cpus.some(cpu => cpu.status === CPU_STATUS.OFF);
+  const anyCpuSuspect = c.cpus.some(cpu => cpu.status === CPU_STATUS.SUSPECT);
+  const cableInputCut = !c.cables.inputs;
+
+  c.derangementDetected = (activeDetectorsCount === 1) || anyCpuOff || anyCpuSuspect || cableInputCut;
+
+  // Alarme validée si :
+  // - 2 détecteurs ou plus actifs
+  // - ou bouton pressé
+  const anyButtonPressed = c.buttons.some(btn => btn.pressed);
+  c.alarmValidated = (activeDetectorsCount >= 2) || anyButtonPressed;
+
+  // Asservissement activé si alarme validée ET pas dérangement
+  c.asservissementActive = c.alarmValidated && !c.derangementDetected;
+
+  // Mise à jour état système global
+  if (anyCpuOff || cableInputCut) {
+    c.systemState = STATES.CRITIQUE;
+  } else if (anyCpuSuspect) {
+    c.systemState = STATES.DEGRADE;
+  } else {
+    c.systemState = STATES.NORMAL;
+  }
+
+  updateCentralUI(centralId);
+}
+
+
+
+  // Réinitialiser simulation
+  function resetSimulation() {
+    Object.values(centrales).forEach(c => {
+      c.cpus.forEach(cpu => {
+        cpu.badHeartbeats = 0;
+        cpu.status = CPU_STATUS.NORMAL;
+      });
+      c.detectors.forEach(d => d.alarm = false);
+      c.buttons.forEach(b => b.pressed = false);
+      c.cables.inputs = true;
+      c.alarmValidated = false;
+      c.derangementDetected = false;
+      c.asservissementActive = false;
+      c.systemState = STATES.NORMAL;
+      updateCentralUI(c.id);
+    });
+    log("Simulation réinitialisée.");
+  }
+
+  // Initialisation affichage
+  const container = document.getElementById("centrals-container");
+  Object.values(centrales).forEach(central => {
+    container.appendChild(createCentralUI(central));
+    evaluateCentralState(central.id);
+  });
+
+</script>
+
+</body>
+</html>
