@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simulation SDAI complète - Voyants distincts</title>
+<title>Simulation SDAI complète - Voyants distincts + Alim/Batterie</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -50,6 +50,31 @@
     background: #2196f3; /* bleu */
     box-shadow: 0 0 8px #2196f3;
   }
+
+  /* Nouveaux styles voyants alimentation/batterie */
+  .light.alim-ok {
+    background: #4caf50; /* vert secteur */
+    box-shadow: 0 0 8px #4caf50;
+  }
+  .light.alim-off {
+    background: #555; /* éteint / gris */
+    box-shadow: none;
+    opacity: 0.5;
+  }
+  .light.batt-idle {
+    background: #777; /* batterie en veille (gris) */
+    box-shadow: none;
+    opacity: 0.6;
+  }
+  .light.batt-on {
+    background: #ff9800; /* orange - sur batterie */
+    box-shadow: 0 0 8px #ff9800;
+  }
+  .light.batt-fail {
+    background: #f44336; /* rouge - batterie HS */
+    box-shadow: 0 0 8px #f44336;
+  }
+
   .indicator {
     font-weight: bold;
     font-size: 1.3em;
@@ -128,6 +153,23 @@
     color: #f44336;
     font-weight: bold;
   }
+
+  /* Zone Alimentation séparée (option 3) */
+  .power-section {
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px dashed #999;
+    border-radius: 8px;
+    max-width: 420px;
+  }
+  .power-row {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .power-label { font-weight:bold; }
+
   button.sim-btn {
     margin: 6px 6px 6px 0;
     padding: 6px 12px;
@@ -248,7 +290,7 @@
     OFF: "off"
   };
 
-  // Création des centrales
+  // Création des centrales (conserve tout)
   const centrales = {
     1: {
       id: 1,
@@ -269,6 +311,10 @@
       cables: {
         inputs: true
       },
+      // Alimentation ajoutée (secteur + batterie)
+      powerSupply: "ok", // "ok" ou "ko" (secteur)
+      batteryOK: true,   // true = batterie opérationnelle, false = batterie HS
+
       systemState: STATES.NORMAL,
       alarmValidated: false,
       derangementDetected: false,
@@ -285,6 +331,13 @@
     console.log(line);
     logEl.textContent += line + "\n";
     logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // Simule envoi LEVAC (ici via log)
+  function sendLevacSignal(centralId, message) {
+    const c = centrales[centralId];
+    log(`[LEVAC] ${c.name} : ${message}`);
+    // Ici on simule; si besoin d'intégrer un envoi réel, on le met ici.
   }
 
   // Création affichage centrales dynamique
@@ -347,6 +400,67 @@
     cableEl.className = `cable ${central.cables.inputs ? "connected" : "cut"}`;
     cableEl.textContent = `Câble Entrée: ${central.cables.inputs ? "CONNECTÉ" : "COUPÉ"}`;
     container.appendChild(cableEl);
+
+    // Zone alimentation (séparée)
+    const powerSection = document.createElement("div");
+    powerSection.className = "power-section";
+    powerSection.innerHTML = `<div style="font-weight:bold; margin-bottom:6px">Alimentation</div>`;
+
+    // Voyants alim + batterie (séparés)
+    const powerRow = document.createElement("div");
+    powerRow.className = "power-row";
+    powerRow.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="voyant-alim-${central.id}" class="light"></div>
+        <div class="power-label">Secteur</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="voyant-batt-${central.id}" class="light"></div>
+        <div class="power-label">Batterie</div>
+      </div>
+    `;
+    powerSection.appendChild(powerRow);
+
+    // Statut texte alimentation
+    const powerStatus = document.createElement("div");
+    powerStatus.id = `power-status-${central.id}`;
+    powerStatus.style.marginTop = "6px";
+    powerStatus.textContent = `Secteur: ${central.powerSupply === "ok" ? "OK" : "COUPÉ"} — Batterie: ${central.batteryOK ? "OK" : "HS"}`;
+    powerSection.appendChild(powerStatus);
+
+    // Boutons de simulation alimentation/batterie
+    const powerBtns = document.createElement("div");
+    powerBtns.style.marginTop = "8px";
+
+    const togglePowerBtn = document.createElement("button");
+    togglePowerBtn.textContent = central.powerSupply === "ok" ? "Couper alimentation" : "Rétablir alimentation";
+    togglePowerBtn.className = "sim-btn";
+    togglePowerBtn.onclick = () => {
+      centrales[central.id].powerSupply = centrales[central.id].powerSupply === "ok" ? "ko" : "ok";
+      // quand on rétablit secteur on remet pas automatiquement la batterie OK (mais souvent batterie reste OK)
+      if (centrales[central.id].powerSupply === "ok") {
+        log(`${central.name} : secteur RÉTABLI`);
+      } else {
+        log(`${central.name} : secteur COUPÉ -> passage sur batterie si disponible`);
+      }
+      updateCentralUI(central.id);
+      evaluateCentralState(central.id);
+    };
+    powerBtns.appendChild(togglePowerBtn);
+
+    const toggleBattBtn = document.createElement("button");
+    toggleBattBtn.textContent = central.batteryOK ? "Simuler batterie HS" : "Remettre batterie OK";
+    toggleBattBtn.className = "sim-btn";
+    toggleBattBtn.onclick = () => {
+      centrales[central.id].batteryOK = !centrales[central.id].batteryOK;
+      log(`${central.name} : batterie ${centrales[central.id].batteryOK ? "OK" : "HS"}`);
+      updateCentralUI(central.id);
+      evaluateCentralState(central.id);
+    };
+    powerBtns.appendChild(toggleBattBtn);
+
+    powerSection.appendChild(powerBtns);
+    container.appendChild(powerSection);
 
     // Détecteurs
     const detTitle = document.createElement("h3");
@@ -428,7 +542,7 @@
   function updateCentralUI(centralId) {
     const c = centrales[centralId];
 
-    // Mise à jour voyants lumineux
+    // Mise à jour voyants lumineux (général)
     updateVoyants(centralId);
 
     // Etat système
@@ -448,16 +562,39 @@
     cableEl.className = `cable ${c.cables.inputs ? "connected" : "cut"}`;
     cableEl.textContent = `Câble Entrée: ${c.cables.inputs ? "CONNECTÉ" : "COUPÉ"}`;
 
+    // Alimentation - statut texte
+    const powerStatus = document.getElementById(`power-status-${centralId}`);
+    if (powerStatus) {
+      powerStatus.textContent = `Secteur: ${c.powerSupply === "ok" ? "OK" : "COUPÉ"} — Batterie: ${c.batteryOK ? "OK" : "HS"}`;
+    }
+
+    // Met à jour texte des boutons alimentation si nécessaire
+    const container = document.getElementById(`central-${centralId}`);
+    if (container) {
+      const btns = Array.from(container.getElementsByTagName("button"));
+      btns.forEach(btn => {
+        if (btn.textContent.includes("Couper alimentation") || btn.textContent.includes("Rétablir alimentation")) {
+          btn.textContent = c.powerSupply === "ok" ? "Couper alimentation" : "Rétablir alimentation";
+        }
+        if (btn.textContent.includes("Simuler batterie") || btn.textContent.includes("Remettre batterie")) {
+          btn.textContent = c.batteryOK ? "Simuler batterie HS" : "Remettre batterie OK";
+        }
+        if (btn.textContent.includes("Couper câble") || btn.textContent.includes("Rétablir câble")) {
+          btn.textContent = c.cables.inputs ? "Couper câble entrée" : "Rétablir câble entrée";
+        }
+      });
+    }
+
     // Détecteurs
     c.detectors.forEach(det => {
       const detEl = document.getElementById(det.id);
-      detEl.className = `detector ${det.alarm ? "alarm" : "normal"}`;
+      if (detEl) detEl.className = `detector ${det.alarm ? "alarm" : "normal"}`;
     });
 
-    // Boutons
+    // Boutons manuels
     c.buttons.forEach(btn => {
       const btnEl = document.getElementById(btn.id);
-      btnEl.className = `button ${btn.pressed ? "pressed" : "normal"}`;
+      if (btnEl) btnEl.className = `button ${btn.pressed ? "pressed" : "normal"}`;
     });
   }
 
@@ -467,26 +604,47 @@
 
     // Voyant Alarme : activé si alarme validée (detecteurs >= 2 ou bouton pressé)
     const alarmLight = document.getElementById(`voyant-alarm-${centralId}`);
-    if (c.alarmValidated) {
-      alarmLight.classList.add("alarm");
-    } else {
-      alarmLight.classList.remove("alarm");
+    if (alarmLight) {
+      alarmLight.className = "light";
+      if (c.alarmValidated) alarmLight.classList.add("alarm");
     }
 
-    // Voyant Dérangement : activé si CPU suspect/off ou câble coupé ou 1 détecteur activé
+    // Voyant Dérangement : activé si dérangementDetected
     const derangementLight = document.getElementById(`voyant-derangement-${centralId}`);
-    if (c.derangementDetected) {
-      derangementLight.classList.add("derangement");
-    } else {
-      derangementLight.classList.remove("derangement");
+    if (derangementLight) {
+      derangementLight.className = "light";
+      if (c.derangementDetected) derangementLight.classList.add("derangement");
     }
 
-    // Voyant Asservissement : activé si asservissement actif (alarme validée et pas dérangement)
+    // Voyant Asservissement : activé si asservissementActive
     const asservLight = document.getElementById(`voyant-asservissement-${centralId}`);
-    if (c.asservissementActive) {
-      asservLight.classList.add("asservissement");
-    } else {
-      asservLight.classList.remove("asservissement");
+    if (asservLight) {
+      asservLight.className = "light";
+      if (c.asservissementActive) asservLight.classList.add("asservissement");
+    }
+
+    // Voyant Alim (secteur)
+    const alimLight = document.getElementById(`voyant-alim-${centralId}`);
+    if (alimLight) {
+      alimLight.className = "light";
+      if (c.powerSupply === "ok") alimLight.classList.add("alim-ok");
+      else alimLight.classList.add("alim-off");
+    }
+
+    // Voyant Batterie
+    const battLight = document.getElementById(`voyant-batt-${centralId}`);
+    if (battLight) {
+      battLight.className = "light";
+      // batterie idle (secteur OK) -> batt-idle
+      if (c.powerSupply === "ok" && c.batteryOK) {
+        battLight.classList.add("batt-idle");
+      } else if (c.powerSupply !== "ok" && c.batteryOK) {
+        // sur batterie
+        battLight.classList.add("batt-on");
+      } else if (!c.batteryOK) {
+        // batterie HS
+        battLight.classList.add("batt-fail");
+      }
     }
   }
 
@@ -524,43 +682,97 @@
   }
 
   // Évaluation état global centrale (alarme validée, dérangement, asservissement)
-function evaluateCentralState(centralId) {
-  const c = centrales[centralId];
+  function evaluateCentralState(centralId) {
+    const c = centrales[centralId];
 
-  const activeDetectorsCount = c.detectors.filter(d => d.alarm).length;
+    const activeDetectorsCount = c.detectors.filter(d => d.alarm).length;
 
-  // Dérangement détecté si :
-  // - 1 détecteur actif (mais pas 2 ou plus)
-  // - CPU off/suspect
-  // - câble coupé
-  const anyCpuOff = c.cpus.some(cpu => cpu.status === CPU_STATUS.OFF);
-  const anyCpuSuspect = c.cpus.some(cpu => cpu.status === CPU_STATUS.SUSPECT);
-  const cableInputCut = !c.cables.inputs;
+    const anyCpuOff = c.cpus.some(cpu => cpu.status === CPU_STATUS.OFF);
+    const anyCpuSuspect = c.cpus.some(cpu => cpu.status === CPU_STATUS.SUSPECT);
+    const cableInputCut = !c.cables.inputs;
+    const anyButtonPressed = c.buttons.some(btn => btn.pressed);
 
-  c.derangementDetected = (activeDetectorsCount === 1) || anyCpuOff || anyCpuSuspect || cableInputCut;
+    // --- ALIMENTATION LOGIC ---
+    const sectorOK = (c.powerSupply === "ok");
+    const batteryOK = !!c.batteryOK;
 
-  // Alarme validée si :
-  // - 2 détecteurs ou plus actifs
-  // - ou bouton pressé
-  const anyButtonPressed = c.buttons.some(btn => btn.pressed);
-  c.alarmValidated = (activeDetectorsCount >= 2) || anyButtonPressed;
+    // If sector OK, normal alimentation path.
+    // If sector KO and battery OK -> intermediate derangement (sur batterie)
+    // If sector KO and battery KO -> critical: alarm + asserv + levac
+    if (!sectorOK && !batteryOK) {
+      // Pas d'alim totale -> ALARME + ASSERV + CRITIQUE
+      c.alarmValidated = true;
+      c.asservissementActive = true;
+      c.derangementDetected = false; // on force l'alarme critique
+      c.systemState = STATES.CRITIQUE;
+      sendLevacSignal(centralId, "ALERTE : alimentation et batterie HS (etat CRITIQUE)");
+      updateCentralUI(centralId);
+      return; // sortie rapide car critique prioritaire
+    }
 
-  // Asservissement activé si alarme validée ET pas dérangement
-  c.asservissementActive = c.alarmValidated && !c.derangementDetected;
+    // si secteur KO mais batterie OK -> dérangement intermédiaire
+    if (!sectorOK && batteryOK) {
+      // dérangement forcé (sur batterie)
+      c.derangementDetected = true;
+      // alarme validée reste selon détecteurs/buttons (normal logic below)
+    } else {
+      // secteur OK -> dérangement lié uniquement aux autres facteurs (cpu/cable/det)
+      // We'll compute below
+      // Ensure we don't incorrectly keep derangement from previous state
+      // c.derangementDetected will be recalculated below
+    }
 
-  // Mise à jour état système global
-  if (anyCpuOff || cableInputCut) {
-    c.systemState = STATES.CRITIQUE;
-  } else if (anyCpuSuspect) {
-    c.systemState = STATES.DEGRADE;
-  } else {
-    c.systemState = STATES.NORMAL;
+    // --- DÉTECTEURS / BOUTONS / CPU logic (conserve ton comportement) ---
+
+    // Dérangement détecté si :
+    // - 1 détecteur actif (mais pas 2 ou plus)
+    // - CPU off/suspect
+    // - câble coupé
+    // Note : on garde déjà c.derangementDetected = true si sur batterie (au dessus)
+    const detectorsOne = (activeDetectorsCount === 1);
+    const detectorsTwoOrMore = (activeDetectorsCount >= 2);
+
+    // Base dérangement (hors alimentation)
+    const baseDerangement = detectorsOne || anyCpuOff || anyCpuSuspect || cableInputCut;
+
+    // Merge with battery-derived derangement
+    c.derangementDetected = c.derangementDetected || baseDerangement;
+
+    // Alarme validée si :
+    // - 2 détecteurs ou plus actifs
+    // - ou bouton pressé
+    c.alarmValidated = (detectorsTwoOrMore) || anyButtonPressed;
+
+    // Asservissement :
+    // - Si alimentation critique (handled above) we returned
+    // - Otherwise asserv active if alarmValidated AND NOT (derangement AND battery-only prevents asserv)
+    // The user earlier wanted: if on battery => derangement (but not block asserv if alarm validated?)
+    // As per latest requirement: if sector KO + battery OK -> DERANGEMENT and asserv should NOT be active (unless we decide differently)
+    // We'll implement: when on battery (sectorKO && batteryOK) -> asservissementActive = false
+    if (!sectorOK && batteryOK) {
+      // on battery => derangement and no asserv
+      c.asservissementActive = false;
+    } else {
+      // sector OK => asserv if alarmValidated (and not derangement that blocks it)
+      c.asservissementActive = c.alarmValidated ? true : false;
+      // If derangement present we may still allow asserv if alarmValidated (user earlier had variant).
+      // To preserve prior behavior: if alarmValidated -> asserv allowed even if derangement, except when on battery-only handling above.
+      if (c.alarmValidated && !(!sectorOK && batteryOK)) {
+        c.asservissementActive = true;
+      }
+    }
+
+    // Mise à jour état système global (si pas déjà géré par alarme critique)
+    if (anyCpuOff || cableInputCut) {
+      c.systemState = STATES.CRITIQUE;
+    } else if (anyCpuSuspect || c.derangementDetected) {
+      c.systemState = STATES.DEGRADE;
+    } else {
+      c.systemState = STATES.NORMAL;
+    }
+
+    updateCentralUI(centralId);
   }
-
-  updateCentralUI(centralId);
-}
-
-
 
   // Réinitialiser simulation
   function resetSimulation() {
@@ -572,6 +784,8 @@ function evaluateCentralState(centralId) {
       c.detectors.forEach(d => d.alarm = false);
       c.buttons.forEach(b => b.pressed = false);
       c.cables.inputs = true;
+      c.powerSupply = "ok";
+      c.batteryOK = true;
       c.alarmValidated = false;
       c.derangementDetected = false;
       c.asservissementActive = false;
