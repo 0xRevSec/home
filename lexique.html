@@ -1,0 +1,760 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulaire trilingue FR·DE·EN — Détection incendie & métier</title>
+<script>
+(function(){try{if(!document.querySelector('meta[name="viewport"]')){var m=document.createElement('meta');m.setAttribute('name','viewport');m.setAttribute('content','width=device-width, initial-scale=1');(document.head||document.documentElement).appendChild(m);}}catch(e){}})();
+</script>
+<style>
+  :root{
+    --bg:#0f1320; --bg2:#141a2a; --card:#171d2e; --card2:#1c2438;
+    --line:#28324a; --line2:#374561;
+    --txt:#e9edf6; --dim:#95a2bd; --dim2:#6b788f;
+    --accent:#6d7cff; --accent-dim:#39407a;
+    /* langues */
+    --fr:#e9edf6; --de:#f0a92b; --en:#22c1a8;
+    /* domaines (liseré) */
+    --d-fire:#e5433d; --d-elec:#f0a92b; --d-tool:#1fae5a; --d-meas:#22c1a8;
+    --d-verb:#6d7cff; --d-safe:#ff8a3d; --d-convo:#3aa0ff; --d-social:#b07cff;
+    --mono:ui-monospace,"Cascadia Code","Consolas","SF Mono",monospace;
+    --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#eef1f7; --bg2:#e5e9f2; --card:#ffffff; --card2:#f3f5fa;
+      --line:#d7dde8; --line2:#c1cad9;
+      --txt:#141a2a; --dim:#4e5a72; --dim2:#7b8699;
+      --accent:#4954d6; --accent-dim:#c7ccf2;
+      --fr:#141a2a; --de:#b5790a; --en:#0f8f7d;
+      --d-fire:#c62d29; --d-elec:#b5790a; --d-tool:#0f8a45; --d-meas:#0f8f7d;
+      --d-verb:#4954d6; --d-safe:#d1650f; --d-convo:#1f6fc4; --d-social:#7a49d6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1320; --bg2:#141a2a; --card:#171d2e; --card2:#1c2438;
+    --line:#28324a; --line2:#374561; --txt:#e9edf6; --dim:#95a2bd; --dim2:#6b788f;
+    --accent:#6d7cff; --accent-dim:#39407a; --fr:#e9edf6; --de:#f0a92b; --en:#22c1a8;
+    --d-fire:#e5433d; --d-elec:#f0a92b; --d-tool:#1fae5a; --d-meas:#22c1a8;
+    --d-verb:#6d7cff; --d-safe:#ff8a3d; --d-convo:#3aa0ff; --d-social:#b07cff;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f7; --bg2:#e5e9f2; --card:#ffffff; --card2:#f3f5fa;
+    --line:#d7dde8; --line2:#c1cad9; --txt:#141a2a; --dim:#4e5a72; --dim2:#7b8699;
+    --accent:#4954d6; --accent-dim:#c7ccf2; --fr:#141a2a; --de:#b5790a; --en:#0f8f7d;
+    --d-fire:#c62d29; --d-elec:#b5790a; --d-tool:#0f8a45; --d-meas:#0f8f7d;
+    --d-verb:#4954d6; --d-safe:#d1650f; --d-convo:#1f6fc4; --d-social:#7a49d6;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+  .head-inner{max-width:1200px;margin:0 auto;padding:14px 22px 12px}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2);display:flex;gap:9px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+  .kicker b{color:var(--fr)} .kicker .k-de{color:var(--de)} .kicker .k-en{color:var(--en)}
+  h1{margin:0;font-size:25px;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+  .sub{color:var(--dim);font-size:13.5px;margin:6px 0 13px;max-width:74ch}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  #q{flex:1;min-width:220px;background:var(--card);border:1px solid var(--line2);color:var(--txt);border-radius:10px;padding:11px 13px;font-size:16px;font-family:var(--sans)}
+  #q::placeholder{color:var(--dim2)}
+  #q:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .count{font-family:var(--mono);font-size:12px;color:var(--dim2);white-space:nowrap}
+  .jump{display:none;width:100%;font-family:var(--sans);font-size:16px;color:var(--txt);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:12px 13px}
+  .jump:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+
+  nav{max-width:1200px;margin:0 auto;padding:10px 22px 0;display:flex;gap:7px;flex-wrap:wrap}
+  nav a{font-size:12px;font-family:var(--mono);color:var(--dim);text-decoration:none;border:1px solid var(--line);background:var(--card);padding:5px 10px;border-radius:20px;white-space:nowrap;transition:.12s}
+  nav a:hover{border-color:var(--accent);color:var(--txt)}
+
+  main{max-width:1200px;margin:0 auto;padding:8px 22px 80px}
+  section{margin-top:30px;scroll-margin-top:150px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;padding-bottom:9px;border-bottom:2px solid var(--line2);margin-bottom:4px}
+  .sec-num{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700;border:1px solid var(--accent-dim);border-radius:5px;padding:2px 7px;flex:0 0 auto}
+  .sec-head h2{margin:0;font-size:18px;letter-spacing:-.01em}
+  .sec-head .de-h{color:var(--dim);font-weight:500;font-size:13px;margin-left:auto;font-family:var(--mono)}
+
+  .col-head{display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:18px;padding:0 4px 6px 15px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+  .col-head .c-fr{color:var(--dim2)} .col-head .c-de{color:var(--de)} .col-head .c-en{color:var(--en)}
+
+  .rows{display:flex;flex-direction:column}
+  .row{display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:18px;padding:11px 4px 11px 15px;border-bottom:1px solid var(--line);position:relative}
+  .row::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--line2)}
+  .s-fire::before{background:var(--d-fire)} .s-elec::before{background:var(--d-elec)}
+  .s-tool::before{background:var(--d-tool)} .s-meas::before{background:var(--d-meas)}
+  .s-verb::before{background:var(--d-verb)} .s-safe::before{background:var(--d-safe)}
+  .s-convo::before{background:var(--d-convo)} .s-social::before{background:var(--d-social)}
+  .fr{font-weight:650;color:var(--fr)}
+  .de{color:var(--dim);font-size:14.5px}
+  .de b{color:var(--de);font-weight:600}
+  .en{color:var(--dim);font-size:14.5px}
+  .en b{color:var(--en);font-weight:600}
+  .fr .n{font-family:var(--mono);font-size:11px;color:var(--dim2);font-weight:400}
+
+  .note{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 15px;margin:14px 0;font-size:13.5px;color:var(--dim)}
+  .note b{color:var(--txt)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--dim);font-family:var(--mono);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  .no-res{display:none;text-align:center;color:var(--dim2);font-family:var(--mono);padding:50px;font-size:14px}
+  footer{max-width:1200px;margin:40px auto 0;padding:24px 22px 60px;color:var(--dim2);font-size:12.5px;border-top:1px solid var(--line)}
+  footer b{color:var(--dim)}
+
+  @media (max-width:780px){
+    .head-inner{padding:12px 15px 10px} h1{font-size:20px} .sub{font-size:13px}
+    main{padding:4px 12px 60px}
+    nav{padding:9px 12px 2px} nav a{display:none} .jump{display:block}
+    section{margin-top:20px;scroll-margin-top:120px}
+    .sec-head h2{font-size:15.5px} .sec-head .de-h{display:none}
+    .col-head{display:none}
+    .rows{gap:10px}
+    .row{grid-template-columns:1fr;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 13px 18px}
+    .row::before{top:12px;bottom:12px;left:8px;width:4px}
+    .fr{font-size:16.5px;line-height:1.3}
+    .de,.en{font-size:14.5px;padding-top:7px;border-top:1px dashed var(--line)}
+    .de::before{content:"DE";font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--de);border:1px solid var(--de);border-radius:4px;padding:1px 5px;margin-right:8px;vertical-align:2px;opacity:.8}
+    .en::before{content:"EN";font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--en);border:1px solid var(--en);border-radius:4px;padding:1px 5px;margin-right:8px;vertical-align:2px;opacity:.8}
+  }
+  @media print{
+    :root{--bg:#fff;--bg2:#fff;--card:#fff;--card2:#f4f5f8;--line:#c9d0dd;--line2:#9fabc0;--txt:#141a2a;--dim:#3c485c;--dim2:#5f6b7e;--fr:#141a2a;--de:#8a5c07;--en:#0c6f60}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:13mm 11mm}
+    body{font-size:10px} header{position:static} .controls,nav,.count,#q,.jump,.no-res,.legend{display:none!important}
+    .head-inner{padding:0 0 6px} h1{font-size:17px} main{padding:0}
+    section{margin-top:12px} .sec-head{page-break-after:avoid} .row{page-break-inside:avoid;padding:5px 4px 5px 12px;gap:12px} .col-head{display:grid}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="head-inner">
+    <div class="kicker"><b>Français</b> → <span class="k-de">Deutsch</span> → <span class="k-en">English</span> · Détection incendie · Élec · Chantier</div>
+    <h1>Vocabulaire trilingue du métier & de la conversation</h1>
+    <p class="sub">Plus de 500 mots et expressions FR·DE·EN pour progresser en allemand et en anglais : termes techniques de la détection incendie et de l'électricité, matériel de chantier, verbes du métier, et surtout des phrases pour <b>parler avec les gens</b>. Articles allemands (der/die/das) indiqués. Filtre en direct sur les 3 langues.</p>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Chercher : câble / Kabel / cable — bonjour / Störung / test…" autocomplete="off">
+      <span class="count" id="count"></span>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main id="main">
+  <div class="no-res" id="noRes">Aucun résultat — essaie « détecteur », « Kabel », « hello »…</div>
+</main>
+
+<footer>
+  <p><b>Aide-mémoire d'apprentissage.</b> Colonne <b>DE</b> = allemand (article + mot), colonne <b>EN</b> = anglais. Les phrases sont données au registre courant/poli du chantier.
+  L'allemand technique suisse (Schweizerdeutsch parlé) diffère à l'oral, mais l'écrit et le vocabulaire technique ci-dessous sont le Hochdeutsch standard, compris partout.</p>
+  <p style="margin-top:7px">Compagnon du lexique AEAI/Securiton. Astuce : mets la page en favori, révise une catégorie par jour, et utilise la recherche pour retrouver un mot entendu sur le chantier.</p>
+</footer>
+
+<script>
+const LEGEND=[["s-fire","Détection incendie"],["s-elec","Électricité"],["s-tool","Outils/matériaux"],["s-meas","Mesures"],["s-verb","Verbes"],["s-safe","Sécurité"],["s-convo","Conversation"],["s-social","Social"]];
+
+const DATA=[
+ {id:"di1", num:"01", title:"Détection incendie — notions", de:"Brandmeldung / Fire detection", stripe:"s-fire", rows:[
+   ["la détection incendie","die <b>Branderkennung</b>","fire detection"],
+   ["l'installation de détection (SDAI)","die <b>Brandmeldeanlage</b> (BMA)","fire alarm system"],
+   ["la protection incendie","der <b>Brandschutz</b>","fire protection"],
+   ["le feu / l'incendie","das <b>Feuer</b> / der <b>Brand</b>","fire"],
+   ["la fumée","der <b>Rauch</b>","smoke"],
+   ["la chaleur","die <b>Wärme</b> / die Hitze","heat"],
+   ["la flamme","die <b>Flamme</b>","flame"],
+   ["le monoxyde de carbone (CO)","das <b>Kohlenmonoxid</b> (CO)","carbon monoxide"],
+   ["l'alarme","der <b>Alarm</b>","alarm"],
+   ["la fausse alarme","der <b>Fehlalarm</b> / Täuschungsalarm","false alarm"],
+   ["le dérangement / défaut","die <b>Störung</b>","fault / trouble"],
+   ["la surveillance","die <b>Überwachung</b>","monitoring"],
+   ["le compartiment coupe-feu","der <b>Brandabschnitt</b>","fire compartment"],
+   ["la voie d'évacuation / de fuite","der <b>Fluchtweg</b> / Rettungsweg","escape route"],
+   ["l'évacuation","die <b>Räumung</b> / Evakuierung","evacuation"],
+   ["la norme","die <b>Norm</b>","standard"],
+   ["la directive","die <b>Richtlinie</b>","directive / guideline"],
+   ["la prescription","die <b>Vorschrift</b>","regulation"],
+   ["le concept de protection incendie","das <b>Brandschutzkonzept</b>","fire protection concept"],
+   ["les sapeurs-pompiers","die <b>Feuerwehr</b>","fire brigade / fire department"],
+   ["la centrale d'engagement (118)","die <b>Alarmzentrale</b> / Einsatzzentrale","dispatch centre"],
+   ["le risque","das <b>Risiko</b> / die Gefahr","risk / hazard"],
+   ["le danger","die <b>Gefahr</b>","danger"],
+   ["la sécurité","die <b>Sicherheit</b>","safety / security"],
+   ["l'exploitant","der <b>Betreiber</b>","operator / owner"],
+   ["la mise en service","die <b>Inbetriebnahme</b>","commissioning"],
+   ["la maintenance / l'entretien","die <b>Wartung</b> / Instandhaltung","maintenance / servicing"],
+   ["le contrôle périodique","die <b>periodische Kontrolle</b>","periodic inspection"],
+   ["le rapport de réception","das <b>Abnahmeprotokoll</b>","acceptance report"],
+   ["l'attestation / homologation","die <b>Zulassung</b> / Anerkennung","approval / certification"],
+ ]},
+
+ {id:"di2", num:"02", title:"Détecteurs & organes", de:"Melder & Geräte / Detectors", stripe:"s-fire", rows:[
+   ["le détecteur (d'incendie)","der <b>Melder</b> / Brandmelder","(fire) detector"],
+   ["le détecteur automatique","der <b>automatische Melder</b>","automatic detector"],
+   ["le détecteur de fumée","der <b>Rauchmelder</b>","smoke detector"],
+   ["le détecteur optique","der <b>optische Melder</b>","optical detector"],
+   ["le détecteur de chaleur","der <b>Wärmemelder</b>","heat detector"],
+   ["le détecteur multicritère","der <b>Mehrkriterienmelder</b>","multi-criteria detector"],
+   ["le détecteur linéaire","der <b>linienförmige Melder</b>","linear detector"],
+   ["le détecteur par aspiration","der <b>Ansaugrauchmelder</b>","aspirating smoke detector"],
+   ["le détecteur de flamme","der <b>Flammenmelder</b>","flame detector"],
+   ["le déclencheur manuel (DM)","der <b>Handfeuermelder</b> / Handmelder","manual call point"],
+   ["le socle (de détecteur)","der <b>Meldersockel</b>","detector base"],
+   ["la chambre de détection","die <b>Messkammer</b>","sensing chamber"],
+   ["le capteur","der <b>Sensor</b> / Fühler","sensor"],
+   ["la sirène","die <b>Sirene</b> / der Signalgeber","sounder / siren"],
+   ["le flash / diffuseur lumineux","die <b>Blitzleuchte</b>","strobe / beacon"],
+   ["le haut-parleur","der <b>Lautsprecher</b>","loudspeaker"],
+   ["la sensibilité","die <b>Empfindlichkeit</b>","sensitivity"],
+   ["l'encrassement","die <b>Verschmutzung</b>","contamination / dirt"],
+   ["le seuil d'alarme","die <b>Alarmschwelle</b>","alarm threshold"],
+   ["le tube d'aspiration","das <b>Ansaugrohr</b>","sampling pipe"],
+   ["l'orifice d'aspiration","die <b>Ansaugöffnung</b>","sampling hole"],
+   ["le détecteur de gaine","der <b>Lüftungskanalmelder</b>","duct detector"],
+   ["l'indicateur d'action (voyant)","die <b>Parallelanzeige</b>","remote indicator"],
+   ["la vitre à briser","die <b>Glasscheibe</b>","break glass"],
+   ["l'aimant de test","der <b>Prüfmagnet</b>","test magnet"],
+   ["le gaz de test / aérosol","das <b>Prüfgas</b> / Prüf-Aerosol","test gas / test aerosol"],
+   ["le détecteur radio (sans fil)","der <b>Funkmelder</b>","wireless detector"],
+   ["l'aimant de maintien de porte","der <b>Türhaftmagnet</b>","door holding magnet"],
+   ["le détecteur autonome (logement)","der <b>Rauchwarnmelder</b>","standalone smoke alarm"],
+   ["la durée de vie","die <b>Lebensdauer</b>","service life"],
+ ]},
+
+ {id:"di3", num:"03", title:"Centrale, boucle & réseau", de:"Zentrale & Loop / Panel", stripe:"s-fire", rows:[
+   ["la centrale (de détection)","die <b>Zentrale</b> / Brandmelderzentrale","(fire alarm) control panel"],
+   ["la face avant / le pupitre","das <b>Bedienfeld</b> / Bedienteil","operating panel / keypad"],
+   ["l'afficheur / l'écran","die <b>Anzeige</b> / das Display","display / screen"],
+   ["la carte / le module","die <b>Karte</b> / das Modul","card / module"],
+   ["la carte de boucle","die <b>Linienkarte</b> / Loop-Karte","loop card"],
+   ["le module entrées/sorties","das <b>Ein-/Ausgangsmodul</b>","input/output module"],
+   ["la carte relais","die <b>Relaiskarte</b>","relay card"],
+   ["l'alimentation","das <b>Netzgerät</b> / die Stromversorgung","power supply"],
+   ["l'accu / la batterie","der <b>Akku</b> / die Batterie","battery"],
+   ["la boucle (ligne rebouclée)","die <b>Ringleitung</b> (Loop)","loop (ring line)"],
+   ["la ligne / le circuit","die <b>Linie</b> / der Stromkreis","line / circuit"],
+   ["l'adresse","die <b>Adresse</b>","address"],
+   ["l'adressage","die <b>Adressierung</b>","addressing"],
+   ["l'élément (de boucle)","der <b>Teilnehmer</b> / das Element","loop element / device"],
+   ["l'isolateur de court-circuit","der <b>Kurzschlussisolator</b>","short-circuit isolator"],
+   ["la zone / le groupe","die <b>Gruppe</b> / Meldergruppe","zone / detection group"],
+   ["le réseau (de centrales)","das <b>Netzwerk</b> / die Vernetzung","network"],
+   ["le renvoi / report","die <b>Fernanzeige</b>","remote display / repeater"],
+   ["le niveau d'accès","die <b>Zugriffsebene</b>","access level"],
+   ["le journal des événements","der <b>Ereignisspeicher</b>","event log"],
+   ["le châssis / rack","der <b>Baugruppenträger</b>","card rack / chassis"],
+   ["le tiroir / l'enfichable","der <b>Einschub</b>","plug-in unit / slot"],
+   ["le paramétrage","die <b>Parametrierung</b>","parameterisation"],
+   ["la configuration","die <b>Konfiguration</b>","configuration"],
+   ["le logiciel","die <b>Software</b>","software"],
+   ["la mise à jour","das <b>Update</b> / die Aktualisierung","update"],
+   ["l'interface","die <b>Schnittstelle</b>","interface"],
+   ["le bornier / la borne","die <b>Klemme</b>","terminal"],
+   ["le fusible","die <b>Sicherung</b>","fuse"],
+   ["la clé / le code","der <b>Schlüssel</b> / der Code","key / code"],
+ ]},
+
+ {id:"di4", num:"04", title:"Alarme, évacuation & transmission", de:"Alarmierung & Übertragung", stripe:"s-fire", rows:[
+   ["l'organisation d'alarme","die <b>Alarmorganisation</b>","alarm organisation"],
+   ["la préalarme / alarme interne","der <b>Voralarm</b>","pre-alarm"],
+   ["l'alarme générale","der <b>Vollalarm</b> / Hauptalarm","general alarm"],
+   ["la temporisation","die <b>Verzögerung</b>","delay"],
+   ["l'acquittement","die <b>Quittierung</b>","acknowledgement"],
+   ["le réarmement / la remise à zéro","die <b>Rückstellung</b> / der Reset","reset"],
+   ["la levée de doute","die <b>Erkundung</b> / Verifikation","investigation / verification"],
+   ["l'ordre d'évacuation","der <b>Räumungsbefehl</b>","evacuation order"],
+   ["l'alarme vocale","die <b>Sprachalarmierung</b>","voice alarm"],
+   ["le message d'évacuation","die <b>Evakuierungsdurchsage</b>","evacuation message"],
+   ["la transmission d'alarme","die <b>Alarmübertragung</b>","alarm transmission"],
+   ["l'équipement de transmission","die <b>Übertragungseinrichtung</b>","transmission equipment"],
+   ["le centre de réception d'alarme","die <b>Alarmempfangsstelle</b>","alarm receiving centre"],
+   ["le tableau de commande pompiers","das <b>Feuerwehr-Bedienfeld</b>","fire brigade panel"],
+   ["le plan d'intervention","der <b>Einsatzplan</b> / die Laufkarte","intervention plan"],
+   ["le coffre à clé pompiers","das <b>Feuerwehr-Schlüsseldepot</b>","fire brigade key box"],
+   ["l'asservissement / la commande","die <b>Ansteuerung</b> / Steuerung","control / actuation"],
+   ["la coupure de ventilation","die <b>Lüftungsabschaltung</b>","ventilation shutdown"],
+   ["le désenfumage","die <b>Entrauchung</b> (RWA)","smoke extraction"],
+   ["la porte coupe-feu","die <b>Brandschutztür</b>","fire door"],
+   ["l'extinction automatique","die <b>Löschanlage</b>","extinguishing system"],
+   ["le sprinkler","die <b>Sprinkleranlage</b>","sprinkler system"],
+   ["l'extinction par gaz","die <b>Gaslöschanlage</b>","gas extinguishing system"],
+   ["l'arrêt d'urgence","der <b>Not-Halt</b> / Nothalt","emergency stop"],
+   ["la dépendance à deux détecteurs","die <b>Zweimelderabhängigkeit</b>","two-detector dependency"],
+   ["le mode jour / nuit","der <b>Tag-/Nachtbetrieb</b>","day/night mode"],
+   ["la matrice de commande","die <b>Steuermatrix</b> / Brandfallmatrix","cause & effect matrix"],
+   ["le critère","das <b>Kriterium</b>","criterion"],
+   ["le contact sec","der <b>potentialfreie Kontakt</b>","volt-free contact"],
+   ["le retour d'état","die <b>Rückmeldung</b>","feedback signal"],
+ ]},
+
+ {id:"el1", num:"05", title:"Électricité — grandeurs & composants", de:"Elektrik / Electrical", stripe:"s-elec", rows:[
+   ["l'électricité","die <b>Elektrizität</b> / der Strom","electricity"],
+   ["le courant","der <b>Strom</b>","current"],
+   ["la tension","die <b>Spannung</b>","voltage"],
+   ["la résistance","der <b>Widerstand</b>","resistance"],
+   ["la puissance","die <b>Leistung</b>","power"],
+   ["l'intensité (ampérage)","die <b>Stromstärke</b>","current (amperage)"],
+   ["le courant continu (DC)","der <b>Gleichstrom</b> (DC)","direct current"],
+   ["le courant alternatif (AC)","der <b>Wechselstrom</b> (AC)","alternating current"],
+   ["la basse tension","die <b>Niederspannung</b>","low voltage"],
+   ["la très basse tension","die <b>Kleinspannung</b>","extra-low voltage"],
+   ["la phase","die <b>Phase</b> / der Aussenleiter","live / phase"],
+   ["le neutre","der <b>Neutralleiter</b>","neutral"],
+   ["la terre / la masse","die <b>Erde</b> / der Schutzleiter (PE)","earth / ground"],
+   ["le conducteur","der <b>Leiter</b>","conductor"],
+   ["le câble","das <b>Kabel</b>","cable"],
+   ["le fil","der <b>Draht</b> / die Ader","wire"],
+   ["le disjoncteur","der <b>Leitungsschutzschalter</b> (LS)","circuit breaker"],
+   ["le différentiel (FI)","der <b>Fehlerstromschutzschalter</b> (FI/RCD)","residual-current device"],
+   ["le fusible","die <b>Sicherung</b>","fuse"],
+   ["le transformateur","der <b>Transformator</b>","transformer"],
+   ["le relais","das <b>Relais</b>","relay"],
+   ["le contacteur","das <b>Schütz</b>","contactor"],
+   ["l'interrupteur","der <b>Schalter</b>","switch"],
+   ["la prise (de courant)","die <b>Steckdose</b>","socket / outlet"],
+   ["la fiche","der <b>Stecker</b>","plug"],
+   ["le tableau électrique","der <b>Verteiler</b> / die Verteilung","distribution board"],
+   ["le coffret / l'armoire","der <b>Schrank</b> / das Gehäuse","cabinet / enclosure"],
+   ["la mise à la terre","die <b>Erdung</b>","earthing / grounding"],
+   ["le court-circuit","der <b>Kurzschluss</b>","short circuit"],
+   ["la coupure de courant","der <b>Stromausfall</b>","power outage"],
+   ["l'onduleur (ASI)","die <b>USV</b> (unterbrechungsfreie Stromversorgung)","UPS"],
+   ["la polarité","die <b>Polarität</b>","polarity"],
+   ["le blindage","die <b>Abschirmung</b>","shielding"],
+   ["le schéma électrique","der <b>Schaltplan</b>","wiring diagram"],
+ ]},
+
+ {id:"el2", num:"06", title:"Câblage & raccordement", de:"Verkabelung / Wiring", stripe:"s-elec", rows:[
+   ["le raccordement","der <b>Anschluss</b>","connection"],
+   ["la borne / le bornier","die <b>Klemme</b>","terminal"],
+   ["la paire torsadée","das <b>verdrillte Adernpaar</b>","twisted pair"],
+   ["la section (de câble)","der <b>Querschnitt</b>","cross-section"],
+   ["la gaine / le fourreau","der <b>Kabelschlauch</b> / das Leerrohr","conduit / trunking"],
+   ["le chemin de câbles","die <b>Kabeltrasse</b> / Kabelpritsche","cable tray"],
+   ["le passe-câble / presse-étoupe","die <b>Kabelverschraubung</b>","cable gland"],
+   ["la goulotte","der <b>Kabelkanal</b>","cable duct"],
+   ["le serre-câble / collier","der <b>Kabelbinder</b>","cable tie"],
+   ["l'embout de câble","die <b>Aderendhülse</b>","wire ferrule"],
+   ["la cosse","der <b>Kabelschuh</b>","cable lug"],
+   ["le domino / la barrette","die <b>Lüsterklemme</b>","terminal block"],
+   ["dénuder (un fil)","<b>abisolieren</b>","to strip (a wire)"],
+   ["sertir","<b>crimpen</b> / verpressen","to crimp"],
+   ["souder","<b>löten</b>","to solder"],
+   ["visser la borne","die Klemme <b>anschrauben</b>","to screw the terminal"],
+   ["le câble résistant au feu (E30)","das <b>Funktionserhalt-Kabel</b> (E30)","fire-resistant cable"],
+   ["la continuité","die <b>Durchgängigkeit</b> / Kontinuität","continuity"],
+   ["l'isolement","die <b>Isolation</b>","insulation"],
+   ["la boucle de mesure","die <b>Messschleife</b>","measuring loop"],
+   ["la résistance de fin de ligne","der <b>Abschlusswiderstand</b>","end-of-line resistor"],
+   ["le repérage / l'étiquetage","die <b>Beschriftung</b> / Kennzeichnung","labelling / marking"],
+   ["le tirage de câble","das <b>Kabelziehen</b>","cable pulling"],
+   ["le percement / le perçage","die <b>Bohrung</b>","drilling / hole"],
+   ["l'encastré / sous crépi","<b>Unterputz</b> (UP)","flush-mounted"],
+   ["l'apparent / en saillie","<b>Aufputz</b> (AP)","surface-mounted"],
+   ["le point de fixation","der <b>Befestigungspunkt</b>","fixing point"],
+   ["la longueur de câble","die <b>Kabellänge</b>","cable length"],
+   ["le brin / le toron","die <b>Litze</b>","strand"],
+   ["la rallonge","das <b>Verlängerungskabel</b>","extension lead"],
+ ]},
+
+ {id:"tool", num:"07", title:"Outils & quincaillerie", de:"Werkzeug / Tools", stripe:"s-tool", rows:[
+   ["l'outil","das <b>Werkzeug</b>","tool"],
+   ["la perceuse / visseuse","die <b>Bohrmaschine</b> / der Akkuschrauber","drill / driver"],
+   ["le foret / la mèche","der <b>Bohrer</b>","drill bit"],
+   ["le tournevis","der <b>Schraubenzieher</b> / Schraubendreher","screwdriver"],
+   ["la pince","die <b>Zange</b>","pliers"],
+   ["la pince coupante","der <b>Seitenschneider</b>","side cutters"],
+   ["la pince à dénuder","die <b>Abisolierzange</b>","wire stripper"],
+   ["la pince à sertir","die <b>Crimpzange</b>","crimping tool"],
+   ["le marteau","der <b>Hammer</b>","hammer"],
+   ["la clé (à vis)","der <b>Schraubenschlüssel</b>","spanner / wrench"],
+   ["la clé Allen (six pans)","der <b>Inbusschlüssel</b>","Allen key"],
+   ["le mètre / le mètre ruban","das <b>Massband</b> / der Zollstock","tape measure"],
+   ["le niveau à bulle","die <b>Wasserwaage</b>","spirit level"],
+   ["le crayon","der <b>Bleistift</b>","pencil"],
+   ["le cutter","das <b>Cuttermesser</b> / Teppichmesser","utility knife"],
+   ["la scie","die <b>Säge</b>","saw"],
+   ["la vis","die <b>Schraube</b>","screw"],
+   ["la cheville","der <b>Dübel</b>","wall plug / anchor"],
+   ["l'écrou","die <b>Mutter</b>","nut"],
+   ["la rondelle","die <b>Unterlegscheibe</b>","washer"],
+   ["le boulon","der <b>Bolzen</b>","bolt"],
+   ["l'échelle","die <b>Leiter</b>","ladder"],
+   ["l'escabeau","die <b>Trittleiter</b>","step ladder"],
+   ["l'échafaudage","das <b>Gerüst</b>","scaffolding"],
+   ["la lampe de poche / frontale","die <b>Taschenlampe</b> / Stirnlampe","torch / headlamp"],
+   ["la caisse à outils","der <b>Werkzeugkasten</b>","toolbox"],
+   ["le ruban adhésif / isolant","das <b>Klebeband</b> / Isolierband","tape / insulating tape"],
+   ["la ceinture porte-outils","der <b>Werkzeuggürtel</b>","tool belt"],
+   ["la rallonge électrique","die <b>Kabeltrommel</b>","extension reel"],
+   ["l'aspirateur (de chantier)","der <b>Staubsauger</b>","vacuum cleaner"],
+   ["la meuleuse","der <b>Winkelschleifer</b> / die Flex","angle grinder"],
+   ["le pistolet à colle/silicone","die <b>Kartuschenpistole</b>","caulking gun"],
+ ]},
+
+ {id:"mat", num:"08", title:"Matériaux & bâtiment", de:"Material & Bau / Building", stripe:"s-tool", rows:[
+   ["le bâtiment","das <b>Gebäude</b>","building"],
+   ["l'étage","das <b>Stockwerk</b> / die Etage","floor / storey"],
+   ["le rez-de-chaussée","das <b>Erdgeschoss</b>","ground floor"],
+   ["le sous-sol / la cave","das <b>Untergeschoss</b> / der Keller","basement"],
+   ["le plafond","die <b>Decke</b>","ceiling"],
+   ["le faux-plafond","die <b>abgehängte Decke</b>","false ceiling"],
+   ["le mur / la paroi","die <b>Wand</b>","wall"],
+   ["le sol","der <b>Boden</b>","floor"],
+   ["la porte","die <b>Tür</b>","door"],
+   ["la fenêtre","das <b>Fenster</b>","window"],
+   ["le couloir / corridor","der <b>Korridor</b> / Gang","corridor"],
+   ["la cage d'escalier","das <b>Treppenhaus</b>","stairwell"],
+   ["l'ascenseur","der <b>Aufzug</b> / Lift","lift / elevator"],
+   ["la gaine technique","der <b>Schacht</b>","shaft / riser"],
+   ["le local technique","der <b>Technikraum</b>","plant room"],
+   ["le parking souterrain","die <b>Tiefgarage</b>","underground car park"],
+   ["le béton","der <b>Beton</b>","concrete"],
+   ["la brique","der <b>Backstein</b> / Ziegel","brick"],
+   ["le plâtre / placo","der <b>Gips</b> / die Gipsplatte","plaster / plasterboard"],
+   ["le bois","das <b>Holz</b>","wood"],
+   ["le métal / l'acier","das <b>Metall</b> / der Stahl","metal / steel"],
+   ["la poussière","der <b>Staub</b>","dust"],
+   ["l'humidité","die <b>Feuchtigkeit</b>","moisture / humidity"],
+   ["le chantier","die <b>Baustelle</b>","construction site"],
+   ["le plan / le schéma","der <b>Plan</b>","plan / drawing"],
+   ["le point rouge (repère)","die <b>Markierung</b>","marking"],
+   ["le carottage","die <b>Kernbohrung</b>","core drilling"],
+   ["le rebouchage","das <b>Verschliessen</b> / die Abschottung","sealing / firestopping"],
+ ]},
+
+ {id:"meas", num:"09", title:"Mesures, unités & chiffres", de:"Messen & Zahlen / Numbers", stripe:"s-meas", rows:[
+   ["mesurer","<b>messen</b>","to measure"],
+   ["la mesure / la valeur","der <b>Messwert</b> / der Wert","reading / value"],
+   ["le multimètre","das <b>Multimeter</b>","multimeter"],
+   ["le volt (V)","das <b>Volt</b> (V)","volt"],
+   ["l'ampère (A)","das <b>Ampere</b> (A)","ampere"],
+   ["l'ohm (Ω)","das <b>Ohm</b> (Ω)","ohm"],
+   ["le watt (W)","das <b>Watt</b> (W)","watt"],
+   ["le millimètre (mm)","der <b>Millimeter</b>","millimetre"],
+   ["le mètre (m)","der <b>Meter</b>","metre"],
+   ["le degré Celsius (°C)","das <b>Grad Celsius</b>","degree Celsius"],
+   ["le pourcentage (%)","der <b>Prozentsatz</b>","percentage"],
+   ["la hauteur","die <b>Höhe</b>","height"],
+   ["la largeur","die <b>Breite</b>","width"],
+   ["la longueur","die <b>Länge</b>","length"],
+   ["la surface","die <b>Fläche</b>","area / surface"],
+   ["zéro / un / deux","<b>null</b> / eins / zwei","zero / one / two"],
+   ["trois / quatre / cinq","<b>drei</b> / vier / fünf","three / four / five"],
+   ["six / sept / huit","<b>sechs</b> / sieben / acht","six / seven / eight"],
+   ["neuf / dix","<b>neun</b> / zehn","nine / ten"],
+   ["vingt / cent / mille","<b>zwanzig</b> / hundert / tausend","twenty / hundred / thousand"],
+   ["le premier / deuxième","der <b>erste</b> / zweite","first / second"],
+   ["la moitié / le quart","die <b>Hälfte</b> / das Viertel","half / quarter"],
+   ["plus / moins","<b>mehr</b> / weniger","more / less"],
+   ["environ / à peu près","<b>ungefähr</b> / etwa","approximately"],
+   ["trop / assez","<b>zu viel</b> / genug","too much / enough"],
+ ]},
+
+ {id:"verb", num:"10", title:"Verbes du métier", de:"Verben / Trade verbs", stripe:"s-verb", rows:[
+   ["installer / monter","<b>installieren</b> / montieren","to install / mount"],
+   ["démonter","<b>demontieren</b> / abbauen","to remove / dismount"],
+   ["raccorder / brancher","<b>anschliessen</b>","to connect / wire up"],
+   ["débrancher","<b>ausstecken</b> / trennen","to disconnect"],
+   ["câbler","<b>verkabeln</b> / verdrahten","to wire / cable"],
+   ["percer","<b>bohren</b>","to drill"],
+   ["visser","<b>schrauben</b>","to screw"],
+   ["dévisser","<b>aufschrauben</b> / lösen","to unscrew"],
+   ["fixer","<b>befestigen</b>","to fix / fasten"],
+   ["mesurer","<b>messen</b>","to measure"],
+   ["tester / contrôler","<b>testen</b> / prüfen","to test / check"],
+   ["régler / ajuster","<b>einstellen</b>","to set / adjust"],
+   ["programmer","<b>programmieren</b>","to program"],
+   ["configurer","<b>konfigurieren</b>","to configure"],
+   ["mettre en service","<b>in Betrieb nehmen</b>","to commission"],
+   ["réarmer / remettre à zéro","<b>zurückstellen</b> / resetten","to reset"],
+   ["acquitter","<b>quittieren</b>","to acknowledge"],
+   ["mettre hors service","<b>ausschalten</b> / abschalten","to switch off / isolate"],
+   ["mettre en service (activer)","<b>einschalten</b>","to switch on"],
+   ["remplacer / changer","<b>ersetzen</b> / austauschen","to replace"],
+   ["réparer / dépanner","<b>reparieren</b> / beheben","to repair / fix"],
+   ["nettoyer","<b>reinigen</b> / putzen","to clean"],
+   ["vérifier","<b>überprüfen</b> / kontrollieren","to verify / inspect"],
+   ["chercher / trouver","<b>suchen</b> / finden","to look for / find"],
+   ["localiser (un défaut)","<b>lokalisieren</b> / orten","to locate (a fault)"],
+   ["fonctionner / marcher","<b>funktionieren</b>","to work / function"],
+   ["couper (le courant)","<b>ausschalten</b> / abstellen","to cut (the power)"],
+   ["étiqueter / repérer","<b>beschriften</b>","to label"],
+   ["documenter / noter","<b>dokumentieren</b> / notieren","to document / note"],
+   ["expliquer / montrer","<b>erklären</b> / zeigen","to explain / show"],
+   ["aider","<b>helfen</b>","to help"],
+   ["attendre","<b>warten</b>","to wait"],
+   ["commencer / finir","<b>anfangen</b> / fertig machen","to start / finish"],
+   ["percer un trou (dans le mur)","ein Loch (in die Wand) <b>bohren</b>","to drill a hole"],
+   ["poser / installer","<b>verlegen</b> / setzen","to lay / install"],
+   ["serrer / desserrer","<b>anziehen</b> / lösen","to tighten / loosen"],
+ ]},
+
+ {id:"safe", num:"11", title:"Sécurité & EPI", de:"Sicherheit & PSA / Safety", stripe:"s-safe", rows:[
+   ["la sécurité au travail","die <b>Arbeitssicherheit</b>","occupational safety"],
+   ["l'EPI (équipement de protection)","die <b>PSA</b> (persönliche Schutzausrüstung)","PPE"],
+   ["le casque","der <b>Helm</b>","helmet / hard hat"],
+   ["les lunettes de protection","die <b>Schutzbrille</b>","safety glasses"],
+   ["les gants","die <b>Handschuhe</b>","gloves"],
+   ["les chaussures de sécurité","die <b>Sicherheitsschuhe</b>","safety shoes"],
+   ["le gilet (haute visibilité)","die <b>Warnweste</b>","hi-vis vest"],
+   ["les bouchons d'oreilles","der <b>Gehörschutz</b>","ear protection"],
+   ["le masque anti-poussière","die <b>Staubmaske</b>","dust mask"],
+   ["le harnais (antichute)","der <b>Auffanggurt</b>","safety harness"],
+   ["danger !","<b>Gefahr!</b> / Vorsicht!","danger! / careful!"],
+   ["attention !","<b>Achtung!</b>","watch out! / attention!"],
+   ["interdit","<b>verboten</b>","forbidden / prohibited"],
+   ["obligatoire","<b>obligatorisch</b> / Pflicht","mandatory"],
+   ["hors tension / consigné","<b>spannungsfrei</b> / freigeschaltet","de-energised / locked out"],
+   ["sous tension","<b>unter Spannung</b>","live / energised"],
+   ["l'accident","der <b>Unfall</b>","accident"],
+   ["la blessure","die <b>Verletzung</b>","injury"],
+   ["les premiers secours","die <b>Erste Hilfe</b>","first aid"],
+   ["le risque de chute","die <b>Absturzgefahr</b>","fall hazard"],
+   ["la zone de sécurité","der <b>Sicherheitsbereich</b>","safety zone"],
+   ["le permis de feu (travail par point chaud)","der <b>Feuererlaubnisschein</b>","hot work permit"],
+   ["évacuer","<b>räumen</b> / evakuieren","to evacuate"],
+   ["appeler les secours","<b>Hilfe rufen</b> / Notruf","to call for help"],
+ ]},
+
+ {id:"site", num:"12", title:"Sur le chantier — phrases", de:"Auf der Baustelle / On site", stripe:"s-convo", rows:[
+   ["Je viens pour la maintenance de la détection incendie.","Ich komme zur <b>Wartung der Brandmeldeanlage</b>.","I'm here for the fire alarm maintenance."],
+   ["Où est la centrale ?","Wo ist die <b>Zentrale</b>?","Where is the panel?"],
+   ["Pouvez-vous m'ouvrir le local technique ?","Können Sie mir den <b>Technikraum</b> aufschliessen?","Can you unlock the plant room for me?"],
+   ["Je dois couper le courant.","Ich muss den <b>Strom abschalten</b>.","I need to switch off the power."],
+   ["Attention, l'alarme va se déclencher.","Achtung, der <b>Alarm wird ausgelöst</b>.","Careful, the alarm is going to go off."],
+   ["C'est un test, ne vous inquiétez pas.","Das ist ein <b>Test</b>, keine Sorge.","It's a test, don't worry."],
+   ["J'ai mis l'installation hors service.","Ich habe die Anlage <b>ausser Betrieb</b> genommen.","I've taken the system out of service."],
+   ["L'installation est de nouveau en service.","Die Anlage ist wieder <b>in Betrieb</b>.","The system is back in operation."],
+   ["Il y a un dérangement sur la boucle 2.","Es gibt eine <b>Störung</b> auf Loop 2.","There's a fault on loop 2."],
+   ["Le détecteur est défectueux, je le remplace.","Der Melder ist <b>defekt</b>, ich ersetze ihn.","The detector is faulty, I'll replace it."],
+   ["Pouvez-vous me montrer où c'est ?","Können Sie mir <b>zeigen, wo</b> das ist?","Can you show me where it is?"],
+   ["J'ai besoin d'une échelle.","Ich brauche eine <b>Leiter</b>.","I need a ladder."],
+   ["Ça va prendre environ une heure.","Es dauert <b>ungefähr eine Stunde</b>.","It'll take about an hour."],
+   ["J'ai bientôt fini.","Ich bin <b>bald fertig</b>.","I'm almost done."],
+   ["Il me manque une pièce.","Mir fehlt ein <b>Ersatzteil</b>.","I'm missing a part."],
+   ["Je dois revenir demain.","Ich muss <b>morgen wiederkommen</b>.","I'll have to come back tomorrow."],
+   ["Où puis-je me garer ?","Wo kann ich <b>parken</b>?","Where can I park?"],
+   ["Est-ce que je peux passer par ici ?","Kann ich <b>hier durch</b>?","Can I go through here?"],
+   ["Faites attention, c'est fragile.","<b>Vorsichtig</b>, das ist zerbrechlich.","Careful, it's fragile."],
+   ["Tout fonctionne correctement.","Alles <b>funktioniert einwandfrei</b>.","Everything works fine."],
+   ["Pouvez-vous signer ici, s'il vous plaît ?","Können Sie bitte <b>hier unterschreiben</b>?","Could you sign here, please?"],
+   ["Je vous envoie le rapport par e-mail.","Ich schicke Ihnen den <b>Bericht per E-Mail</b>.","I'll send you the report by email."],
+   ["Le chantier est-il accessible demain matin ?","Ist die Baustelle <b>morgen früh</b> zugänglich?","Is the site accessible tomorrow morning?"],
+   ["Qui est le responsable ici ?","Wer ist hier <b>zuständig</b>?","Who's in charge here?"],
+   ["Je ne trouve pas le défaut.","Ich finde den <b>Fehler nicht</b>.","I can't find the fault."],
+   ["Pouvez-vous baisser le bruit un instant ?","Können Sie kurz <b>leiser</b> machen?","Can you keep it quiet for a moment?"],
+ ]},
+
+ {id:"soc", num:"13", title:"Se présenter & social", de:"Vorstellen / Introductions", stripe:"s-social", rows:[
+   ["Bonjour","<b>Guten Tag</b> / Grüezi (CH)","Hello / Good day"],
+   ["Bonjour (matin)","<b>Guten Morgen</b>","Good morning"],
+   ["Bonsoir","<b>Guten Abend</b>","Good evening"],
+   ["Salut","<b>Hallo</b>","Hi"],
+   ["Au revoir","<b>Auf Wiedersehen</b> / Tschüss","Goodbye / Bye"],
+   ["À bientôt / à demain","<b>Bis bald</b> / bis morgen","See you soon / tomorrow"],
+   ["S'il vous plaît","<b>Bitte</b>","Please"],
+   ["Merci (beaucoup)","<b>Danke</b> (vielmals)","Thank you (very much)"],
+   ["De rien / je vous en prie","<b>Gern geschehen</b> / bitte","You're welcome"],
+   ["Excusez-moi / pardon","<b>Entschuldigung</b>","Excuse me / sorry"],
+   ["Je m'appelle…","Ich <b>heisse</b>… / Mein Name ist…","My name is…"],
+   ["Je suis technicien en détection incendie.","Ich bin <b>Brandmeldetechniker</b>.","I'm a fire alarm technician."],
+   ["Je travaille pour la société…","Ich arbeite <b>für die Firma</b>…","I work for the company…"],
+   ["Enchanté.","<b>Freut mich</b>.","Nice to meet you."],
+   ["Comment allez-vous ?","<b>Wie geht es Ihnen?</b>","How are you?"],
+   ["Bien, merci, et vous ?","<b>Gut, danke, und Ihnen?</b>","Fine, thanks, and you?"],
+   ["Je ne parle pas encore bien allemand.","Ich spreche noch <b>nicht gut Deutsch</b>.","I don't speak German well yet."],
+   ["Pouvez-vous parler lentement ?","Können Sie <b>langsam sprechen</b>?","Can you speak slowly?"],
+   ["Pouvez-vous répéter ?","Können Sie das <b>wiederholen</b>?","Can you repeat that?"],
+   ["Je ne comprends pas.","Ich <b>verstehe</b> das nicht.","I don't understand."],
+   ["Comment dit-on … en allemand ?","Wie sagt man … <b>auf Deutsch</b>?","How do you say … in German?"],
+   ["Qu'est-ce que ça veut dire ?","Was <b>bedeutet</b> das?","What does that mean?"],
+   ["Parlez-vous anglais / français ?","Sprechen Sie <b>Englisch / Französisch</b>?","Do you speak English / French?"],
+   ["Pas de problème.","<b>Kein Problem</b>.","No problem."],
+   ["D'accord / entendu.","<b>In Ordnung</b> / einverstanden.","Okay / agreed."],
+   ["Bonne journée !","<b>Schönen Tag</b> noch!","Have a nice day!"],
+ ]},
+
+ {id:"phone", num:"14", title:"Téléphone, rendez-vous & planning", de:"Telefon & Termine", stripe:"s-social", rows:[
+   ["Je vous appelle au sujet de…","Ich rufe Sie <b>wegen…</b> an","I'm calling about…"],
+   ["Puis-je parler à… ?","Kann ich mit … <b>sprechen</b>?","May I speak to…?"],
+   ["Un instant, s'il vous plaît.","Einen <b>Moment</b>, bitte.","One moment, please."],
+   ["Pouvez-vous me rappeler ?","Können Sie mich <b>zurückrufen</b>?","Can you call me back?"],
+   ["Je vous laisse un message.","Ich hinterlasse eine <b>Nachricht</b>.","I'll leave a message."],
+   ["Quel est votre numéro ?","Wie ist Ihre <b>Nummer</b>?","What's your number?"],
+   ["Je vous envoie un e-mail.","Ich schicke Ihnen eine <b>E-Mail</b>.","I'll send you an email."],
+   ["Prenons un rendez-vous.","Machen wir einen <b>Termin</b> ab.","Let's make an appointment."],
+   ["Quand ça vous convient ?","Wann <b>passt es</b> Ihnen?","When suits you?"],
+   ["Lundi matin, ça va ?","Geht es <b>Montagmorgen</b>?","Does Monday morning work?"],
+   ["Je serai là vers 9 heures.","Ich bin gegen <b>9 Uhr</b> da.","I'll be there around 9 o'clock."],
+   ["Je vais être en retard.","Ich <b>komme etwas später</b>.","I'll be a bit late."],
+   ["Aujourd'hui / demain / hier","<b>heute</b> / morgen / gestern","today / tomorrow / yesterday"],
+   ["cette semaine / la semaine prochaine","<b>diese Woche</b> / nächste Woche","this week / next week"],
+   ["le matin / l'après-midi / le soir","der <b>Morgen</b> / Nachmittag / Abend","morning / afternoon / evening"],
+   ["lundi / mardi / mercredi","<b>Montag</b> / Dienstag / Mittwoch","Monday / Tuesday / Wednesday"],
+   ["jeudi / vendredi","<b>Donnerstag</b> / Freitag","Thursday / Friday"],
+   ["samedi / dimanche","<b>Samstag</b> / Sonntag","Saturday / Sunday"],
+   ["urgent","<b>dringend</b>","urgent"],
+   ["dès que possible","<b>so bald wie möglich</b>","as soon as possible"],
+   ["l'horaire / le planning","der <b>Zeitplan</b>","schedule"],
+   ["l'offre / le devis","das <b>Angebot</b> / die Offerte","quote / offer"],
+ ]},
+
+ {id:"trouble", num:"15", title:"Problèmes & dépannage — phrases", de:"Störung & Fehlersuche", stripe:"s-convo", rows:[
+   ["Quel est le problème ?","Was ist das <b>Problem</b>?","What's the problem?"],
+   ["Depuis quand ça ne marche plus ?","Seit wann <b>funktioniert es nicht</b> mehr?","Since when has it stopped working?"],
+   ["L'alarme s'est déclenchée cette nuit.","Der Alarm wurde <b>heute Nacht ausgelöst</b>.","The alarm went off last night."],
+   ["Il y a eu une fausse alarme.","Es gab einen <b>Fehlalarm</b>.","There was a false alarm."],
+   ["La centrale affiche un dérangement.","Die Zentrale zeigt eine <b>Störung</b> an.","The panel shows a fault."],
+   ["Un détecteur est encrassé.","Ein Melder ist <b>verschmutzt</b>.","A detector is dirty."],
+   ["La batterie est faible / à changer.","Der Akku ist <b>schwach</b>.","The battery is low."],
+   ["Il y a une coupure de ligne.","Es gibt einen <b>Leitungsunterbruch</b>.","There's a line break."],
+   ["Je vais vérifier le câblage.","Ich <b>überprüfe die Verkabelung</b>.","I'll check the wiring."],
+   ["Le problème vient d'ici.","Das Problem <b>kommt von hier</b>.","The problem is coming from here."],
+   ["Ce n'est pas grave.","Das ist <b>nicht schlimm</b>.","It's not serious."],
+   ["C'est réparé.","Es ist <b>repariert</b>.","It's fixed."],
+   ["Ça devrait fonctionner maintenant.","Es sollte jetzt <b>funktionieren</b>.","It should work now."],
+   ["Il faut commander une pièce.","Wir müssen ein <b>Ersatzteil bestellen</b>.","We need to order a part."],
+   ["Je ne peux pas le réparer aujourd'hui.","Ich kann es <b>heute nicht</b> reparieren.","I can't fix it today."],
+   ["Pouvez-vous surveiller en attendant ?","Können Sie es <b>vorläufig überwachen</b>?","Can you keep an eye on it in the meantime?"],
+   ["Avez-vous remarqué autre chose ?","Ist Ihnen <b>sonst etwas aufgefallen</b>?","Did you notice anything else?"],
+   ["Ça arrive souvent ?","Passiert das <b>oft</b>?","Does it happen often?"],
+   ["Je dois tester toute la boucle.","Ich muss die ganze <b>Schleife testen</b>.","I have to test the whole loop."],
+   ["N'appuyez sur rien, s'il vous plaît.","Bitte <b>drücken Sie nichts</b>.","Please don't press anything."],
+   ["Prévenez-moi si ça recommence.","<b>Melden Sie sich</b>, wenn es wieder passiert.","Let me know if it happens again."],
+   ["Je note tout dans le rapport.","Ich <b>notiere alles</b> im Bericht.","I'll note everything in the report."],
+   ["C'est sous garantie.","Das ist <b>unter Garantie</b>.","It's under warranty."],
+   ["Il faut moderniser l'installation.","Die Anlage muss <b>modernisiert</b> werden.","The system needs upgrading."],
+   ["Je vous explique ce que j'ai fait.","Ich <b>erkläre</b> Ihnen, was ich gemacht habe.","Let me explain what I did."],
+   ["Tout est de nouveau normal.","Alles ist wieder <b>normal</b>.","Everything is back to normal."],
+ ]},
+
+ {id:"expr", num:"16", title:"Politesse & expressions courantes", de:"Redewendungen / Everyday", stripe:"s-social", rows:[
+   ["oui / non","<b>ja</b> / nein","yes / no"],
+   ["peut-être","<b>vielleicht</b>","maybe"],
+   ["bien sûr","<b>natürlich</b> / klar","of course"],
+   ["exactement","<b>genau</b>","exactly"],
+   ["c'est bon / ça marche","<b>passt</b> / geht","that works / okay"],
+   ["pas encore","<b>noch nicht</b>","not yet"],
+   ["déjà","<b>schon</b>","already"],
+   ["maintenant / plus tard","<b>jetzt</b> / später","now / later"],
+   ["ici / là-bas","<b>hier</b> / dort","here / there"],
+   ["à gauche / à droite","<b>links</b> / rechts","left / right"],
+   ["en haut / en bas","<b>oben</b> / unten","up / down"],
+   ["devant / derrière","<b>vorne</b> / hinten","front / back"],
+   ["à côté de","<b>neben</b>","next to"],
+   ["grand / petit","<b>gross</b> / klein","big / small"],
+   ["ouvert / fermé","<b>offen</b> / geschlossen","open / closed"],
+   ["chaud / froid","<b>heiss</b> / kalt","hot / cold"],
+   ["nouveau / vieux","<b>neu</b> / alt","new / old"],
+   ["facile / difficile","<b>einfach</b> / schwierig","easy / difficult"],
+   ["vite / lentement","<b>schnell</b> / langsam","fast / slowly"],
+   ["c'est possible ?","ist das <b>möglich</b>?","is that possible?"],
+   ["je ne sais pas","ich <b>weiss nicht</b>","I don't know"],
+   ["je pense que oui","ich <b>glaube schon</b>","I think so"],
+   ["ça dépend","das <b>kommt darauf an</b>","it depends"],
+   ["pas de souci","<b>kein Problem</b> / passt schon","no worries"],
+   ["c'est important","das ist <b>wichtig</b>","that's important"],
+   ["j'ai (une) question","ich habe eine <b>Frage</b>","I have a question"],
+   ["est-ce que c'est correct ?","ist das <b>richtig</b>?","is that correct?"],
+   ["félicitations / bravo","<b>gratuliere</b> / bravo","congratulations / well done"],
+   ["bon appétit","<b>en Guete</b> (CH) / guten Appetit","enjoy your meal"],
+   ["santé ! (trinquer)","<b>Prost!</b>","cheers!"],
+ ]},
+
+ {id:"pause", num:"17", title:"Pause, repas & quotidien", de:"Pause & Alltag / Break & daily", stripe:"s-social", rows:[
+   ["la pause","die <b>Pause</b>","the break"],
+   ["la pause de midi","die <b>Mittagspause</b>","lunch break"],
+   ["le café","der <b>Kaffee</b>","coffee"],
+   ["l'eau","das <b>Wasser</b>","water"],
+   ["le repas / à manger","das <b>Essen</b>","food / meal"],
+   ["avoir faim","<b>Hunger haben</b>","to be hungry"],
+   ["avoir soif","<b>Durst haben</b>","to be thirsty"],
+   ["le petit-déjeuner","das <b>Frühstück</b>","breakfast"],
+   ["le dîner (midi, CH)","das <b>Mittagessen</b>","lunch"],
+   ["le souper (soir, CH)","das <b>Abendessen</b>","dinner"],
+   ["le restaurant","das <b>Restaurant</b>","restaurant"],
+   ["Je voudrais…","Ich <b>möchte…</b>","I'd like…"],
+   ["L'addition, s'il vous plaît.","Die <b>Rechnung</b>, bitte.","The bill, please."],
+   ["Combien ça coûte ?","Wie viel <b>kostet</b> das?","How much is it?"],
+   ["l'argent","das <b>Geld</b>","money"],
+   ["la carte (bancaire)","die <b>Karte</b>","card"],
+   ["bon marché / cher","<b>billig</b> / teuer","cheap / expensive"],
+   ["Où sont les toilettes ?","Wo ist die <b>Toilette</b>?","Where's the toilet?"],
+   ["le magasin","der <b>Laden</b> / das Geschäft","shop"],
+   ["Je suis fatigué.","Ich bin <b>müde</b>.","I'm tired."],
+   ["Je suis pressé.","Ich habe es <b>eilig</b>.","I'm in a hurry."],
+   ["J'ai le temps.","Ich habe <b>Zeit</b>.","I've got time."],
+   ["On y va ?","<b>Gehen wir?</b>","Shall we go?"],
+   ["Je vous invite (je paie).","Ich <b>lade Sie ein</b>.","It's on me."],
+   ["C'était très bon.","Es war <b>sehr gut</b>.","It was very good."],
+   ["Bonne fin de journée.","Schönen <b>Feierabend</b>.","Enjoy the rest of your day."],
+   ["à tout à l'heure","<b>bis später</b>","see you later"],
+   ["repose-toi bien / bon week-end","schönes <b>Wochenende</b>","have a good weekend"],
+ ]},
+
+ {id:"nav", num:"18", title:"Directions, trajet & lieux", de:"Wegbeschreibung / Directions", stripe:"s-convo", rows:[
+   ["Où est… ?","<b>Wo ist…?</b>","Where is…?"],
+   ["Pouvez-vous m'indiquer le chemin ?","Können Sie mir den <b>Weg zeigen</b>?","Can you show me the way?"],
+   ["tout droit","<b>geradeaus</b>","straight ahead"],
+   ["tourner à gauche / à droite","links / rechts <b>abbiegen</b>","to turn left / right"],
+   ["près / loin","<b>nah</b> / weit","near / far"],
+   ["l'entrée (principale)","der <b>(Haupt-)Eingang</b>","(main) entrance"],
+   ["la sortie","der <b>Ausgang</b>","exit"],
+   ["l'adresse","die <b>Adresse</b>","address"],
+   ["la rue","die <b>Strasse</b>","street"],
+   ["le numéro (de rue)","die <b>Hausnummer</b>","house number"],
+   ["la voiture","das <b>Auto</b>","car"],
+   ["le parking","der <b>Parkplatz</b>","car park"],
+   ["Où puis-je me garer ?","Wo kann ich <b>parken</b>?","Where can I park?"],
+   ["le train","der <b>Zug</b>","train"],
+   ["la gare","der <b>Bahnhof</b>","station"],
+   ["le bus / l'arrêt","der <b>Bus</b> / die Haltestelle","bus / stop"],
+   ["le billet","das <b>Ticket</b> / die Fahrkarte","ticket"],
+   ["Combien de temps ça prend ?","Wie <b>lange dauert</b> es?","How long does it take?"],
+   ["Je me suis perdu.","Ich habe mich <b>verlaufen</b>.","I got lost."],
+   ["Où est le point de rendez-vous ?","Wo ist der <b>Treffpunkt</b>?","Where's the meeting point?"],
+   ["À quelle heure ?","Um wie viel <b>Uhr</b>?","At what time?"],
+   ["Je suis en route.","Ich bin <b>unterwegs</b>.","I'm on my way."],
+   ["J'arrive dans 10 minutes.","Ich bin in <b>10 Minuten</b> da.","I'll be there in 10 minutes."],
+   ["Je suis devant l'entrée.","Ich bin <b>vor dem Eingang</b>.","I'm in front of the entrance."],
+ ]},
+];
+
+// ---------- Rendu ----------
+const main=document.getElementById('main'), nav=document.getElementById('nav'), noRes=document.getElementById('noRes');
+const jump=document.createElement('select');jump.className='jump';jump.setAttribute('aria-label','Aller à la catégorie');
+const o0=document.createElement('option');o0.value='';o0.textContent='☰  Aller à la catégorie…';jump.appendChild(o0);
+jump.addEventListener('change',()=>{const el=document.getElementById(jump.value);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});jump.selectedIndex=0;});
+nav.appendChild(jump);
+const frag=document.createDocumentFragment();let TOTAL=0;
+DATA.forEach(sec=>{
+  const a=document.createElement('a');a.href='#'+sec.id;a.textContent=sec.num+' · '+sec.title;nav.appendChild(a);
+  const op=document.createElement('option');op.value=sec.id;op.textContent=sec.num+' · '+sec.title;jump.appendChild(op);
+  const s=document.createElement('section');s.id=sec.id;
+  s.innerHTML=`<div class="sec-head"><span class="sec-num">${sec.num}</span><h2>${sec.title}</h2><span class="de-h">${sec.de}</span></div>
+    <div class="col-head"><span class="c-fr">Français</span><span class="c-de">Deutsch</span><span class="c-en">English</span></div>`;
+  const wrap=document.createElement('div');wrap.className='rows';
+  sec.rows.forEach(r=>{TOTAL++;
+    const div=document.createElement('div');div.className='row '+(r[3]||sec.stripe||'');
+    div.innerHTML=`<div class="fr">${r[0]}</div><div class="de">${r[1]}</div><div class="en">${r[2]}</div>`;
+    div.dataset.text=(div.textContent||'').toLowerCase();wrap.appendChild(div);
+  });
+  s.appendChild(wrap);frag.appendChild(s);
+});
+main.appendChild(frag);
+
+// légende
+const legend=document.getElementById('legend');
+LEGEND.forEach(([c,l])=>{const sp=document.createElement('span');sp.innerHTML=`<i style="background:var(--d-${c.slice(2)})"></i>${l}`;legend.appendChild(sp);});
+
+// ---------- Recherche ----------
+const q=document.getElementById('q'),count=document.getElementById('count');
+const rows=[...document.querySelectorAll('.row')],sections=[...document.querySelectorAll('section')];
+function update(){
+  const t=q.value.trim().toLowerCase();let n=0;
+  rows.forEach(r=>{const hit=!t||r.dataset.text.includes(t);r.style.display=hit?'':'none';if(hit)n++;});
+  sections.forEach(s=>{const any=[...s.querySelectorAll('.row')].some(r=>r.style.display!=='none');s.style.display=any?'':'none';});
+  noRes.style.display=n?'none':'block';
+  count.textContent=t?n+' / '+TOTAL:TOTAL+' entrées · '+DATA.length+' thèmes';
+}
+q.addEventListener('input',update);update();
+</script>
