@@ -1,0 +1,641 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lexique Détection Incendie FR/DE — AEAI & Securiton</title>
+<script>
+/* Garantit le viewport même si le gabarit hôte ne l'injecte pas dans <head> :
+   sans lui, le mobile rend en largeur bureau et le responsive ne s'active pas. */
+(function(){
+  try{
+    if(!document.querySelector('meta[name="viewport"]')){
+      var m=document.createElement('meta');
+      m.setAttribute('name','viewport');
+      m.setAttribute('content','width=device-width, initial-scale=1');
+      (document.head||document.documentElement).appendChild(m);
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+  :root{
+    /* Neutres — ardoise à légère dérive froide (choisie, pas héritée) */
+    --bg:#0e1319; --bg2:#131a22; --card:#161e28; --card2:#1b2531;
+    --line:#26313e; --line2:#324150;
+    --txt:#e8eef4; --dim:#93a1b2; --dim2:#67788b;
+    /* Accent = rouge signal détection incendie */
+    --accent:#e5433d; --accent-dim:#8a2b28;
+    /* États façade centrale (sémantiques, pas décoratifs) */
+    --normal:#1fae5a; --alarme:#e5433d; --derang:#f0a92b; --hs:#9d6bff; --info:#3aa0ff;
+    --mono:ui-monospace,"Cascadia Code","Consolas","SF Mono",monospace;
+    --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#eef1f5; --bg2:#e6eaf0; --card:#ffffff; --card2:#f4f6f9;
+      --line:#d6dde5; --line2:#c2ccd6;
+      --txt:#16202b; --dim:#4f5e6e; --dim2:#7b8a99;
+      --accent:#c62d29; --accent-dim:#e8b4b2;
+      --normal:#0f8a45; --alarme:#c62d29; --derang:#b5790a; --hs:#7a49d6; --info:#1f6fc4;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1319; --bg2:#131a22; --card:#161e28; --card2:#1b2531;
+    --line:#26313e; --line2:#324150;
+    --txt:#e8eef4; --dim:#93a1b2; --dim2:#67788b;
+    --accent:#e5433d; --accent-dim:#8a2b28;
+    --normal:#1fae5a; --alarme:#e5433d; --derang:#f0a92b; --hs:#9d6bff; --info:#3aa0ff;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f5; --bg2:#e6eaf0; --card:#ffffff; --card2:#f4f6f9;
+    --line:#d6dde5; --line2:#c2ccd6;
+    --txt:#16202b; --dim:#4f5e6e; --dim2:#7b8a99;
+    --accent:#c62d29; --accent-dim:#e8b4b2;
+    --normal:#0f8a45; --alarme:#c62d29; --derang:#b5790a; --hs:#7a49d6; --info:#1f6fc4;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+    font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+
+  /* ---- Bandeau façade ---- */
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg2),var(--bg));
+    border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+  .head-inner{max-width:1180px;margin:0 auto;padding:14px 22px 12px}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--dim2);display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .kicker .leds{display:inline-flex;gap:5px}
+  .kicker .leds i{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .leds .l-n{background:var(--normal);box-shadow:0 0 7px var(--normal)}
+  .leds .l-a{background:var(--alarme);box-shadow:0 0 7px var(--alarme)}
+  .leds .l-d{background:var(--derang);box-shadow:0 0 7px var(--derang)}
+  h1{margin:0;font-size:26px;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+  h1 .de{color:var(--dim);font-weight:600}
+  .sub{color:var(--dim);font-size:13.5px;margin:6px 0 14px;max-width:70ch}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  #q{flex:1;min-width:220px;background:var(--card);border:1px solid var(--line2);color:var(--txt);
+    border-radius:9px;padding:10px 13px;font-size:14.5px;font-family:var(--sans)}
+  #q::placeholder{color:var(--dim2)}
+  #q:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .count{font-family:var(--mono);font-size:12px;color:var(--dim2);white-space:nowrap}
+
+  /* ---- Nav ancres ---- */
+  nav{max-width:1180px;margin:0 auto;padding:10px 22px 0;display:flex;gap:7px;flex-wrap:wrap}
+  nav a{font-size:12px;font-family:var(--mono);color:var(--dim);text-decoration:none;
+    border:1px solid var(--line);background:var(--card);padding:5px 10px;border-radius:20px;
+    white-space:nowrap;transition:all .12s}
+  nav a:hover{border-color:var(--accent);color:var(--txt)}
+  /* Menu déroulant (mobile uniquement) */
+  .jump{display:none;width:100%;font-family:var(--sans);font-size:16px;color:var(--txt);
+    background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:12px 13px}
+  .jump:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+
+  main{max-width:1180px;margin:0 auto;padding:8px 22px 80px}
+
+  section{margin-top:34px;scroll-margin-top:150px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;padding-bottom:9px;
+    border-bottom:2px solid var(--line2);margin-bottom:4px}
+  .sec-num{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:700;
+    border:1px solid var(--accent-dim);border-radius:5px;padding:2px 7px;flex:0 0 auto}
+  .sec-head h2{margin:0;font-size:19px;letter-spacing:-.01em}
+  .sec-head .de-h{color:var(--dim);font-weight:500;font-size:14px;margin-left:auto;font-family:var(--mono)}
+
+  .rows{display:flex;flex-direction:column}
+  .row{display:grid;grid-template-columns:1.15fr 1.15fr 1.7fr;gap:20px;
+    padding:13px 4px 13px 14px;border-bottom:1px solid var(--line);position:relative}
+  .row::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;
+    background:var(--line2)}
+  .row.s-alarme::before{background:var(--alarme)}
+  .row.s-derang::before{background:var(--derang)}
+  .row.s-normal::before{background:var(--normal)}
+  .row.s-hs::before{background:var(--hs)}
+  .row.s-info::before{background:var(--info)}
+  .row.s-accent::before{background:var(--accent)}
+  .fr{font-weight:650;color:var(--txt)}
+  .fr .abbr{font-family:var(--mono);font-size:12.5px;color:var(--accent);font-weight:700}
+  .de{color:var(--dim);font-size:14px}
+  .de b{color:var(--txt);font-weight:600}
+  .desc{color:var(--dim);font-size:13.5px;line-height:1.5}
+  .desc code,.de code,.fr code{font-family:var(--mono);font-size:12.5px;background:var(--card2);
+    border:1px solid var(--line);border-radius:4px;padding:.5px 5px;color:var(--txt)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;
+    text-transform:uppercase;padding:1.5px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;
+    border:1px solid var(--line2);color:var(--dim2)}
+  .tag.securiton{border-color:var(--accent-dim);color:var(--accent)}
+
+  .col-head{display:grid;grid-template-columns:1.15fr 1.15fr 1.7fr;gap:20px;padding:0 4px 6px 14px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim2)}
+
+  .note{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--info);
+    border-radius:8px;padding:12px 15px;margin:14px 0;font-size:13.5px;color:var(--dim)}
+  .note b{color:var(--txt)}
+  .note.warn{border-left-color:var(--derang)}
+  .note.acc{border-left-color:var(--accent)}
+
+  .no-res{display:none;text-align:center;color:var(--dim2);font-family:var(--mono);
+    padding:50px;font-size:14px}
+
+  footer{max-width:1180px;margin:0 auto;padding:26px 22px 60px;color:var(--dim2);font-size:12.5px;
+    border-top:1px solid var(--line);margin-top:40px}
+  footer b{color:var(--dim)}
+
+  mark{background:var(--derang);color:#1a1200;border-radius:3px;padding:0 2px}
+  :root[data-theme="dark"] mark{background:#f0a92b}
+
+  @media (max-width:760px){
+    body{font-size:15px}
+    .head-inner{padding:12px 15px 10px}
+    h1{font-size:21px}
+    .sub{font-size:13px;margin-bottom:12px}
+    #q{font-size:16px} /* ≥16px évite le zoom auto iOS */
+    main{padding:4px 12px 60px}
+
+    /* nav : menu déroulant compact au lieu du défilement horizontal */
+    nav{padding:9px 12px 2px}
+    nav a{display:none}
+    .jump{display:block}
+
+    section{margin-top:22px;scroll-margin-top:120px}
+    .sec-head{flex-wrap:wrap;gap:8px}
+    .sec-head h2{font-size:16.5px}
+    .sec-head .de-h{display:none}
+    .col-head{display:none}
+
+    /* chaque terme devient une carte lisible */
+    .rows{gap:11px}
+    .row{grid-template-columns:1fr;gap:7px;background:var(--card);
+      border:1px solid var(--line);border-radius:12px;padding:13px 15px 14px 19px}
+    .row::before{top:13px;bottom:13px;left:8px;width:4px}
+    .fr{font-size:16.5px;line-height:1.32}
+    .de{font-size:14.5px;padding-top:8px;border-top:1px dashed var(--line)}
+    .de::before{content:"DE";font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+      color:var(--dim2);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;
+      margin-right:8px;vertical-align:2px}
+    .cat .de::before{content:var(--l2,"FONCTION");color:var(--accent);border-color:var(--accent-dim)}
+    .desc{font-size:13.5px;padding-top:8px;border-top:1px dashed var(--line)}
+    .desc::before{content:"i";display:inline-flex;align-items:center;justify-content:center;
+      width:15px;height:15px;font-family:var(--mono);font-size:10px;font-style:normal;
+      color:var(--info);border:1px solid var(--info);border-radius:50%;margin-right:8px;
+      vertical-align:1px}
+  }
+  @media (max-width:400px){
+    .row{padding:12px 13px 13px 17px}
+    .fr{font-size:16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- Impression / PDF ---- */
+  @media print{
+    :root{
+      --bg:#fff; --bg2:#fff; --card:#fff; --card2:#f3f5f7;
+      --line:#c9d2db; --line2:#9fb0bf;
+      --txt:#101820; --dim:#3a4854; --dim2:#5f6f7c;
+      --accent:#c62d29; --accent-dim:#c62d29;
+    }
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:14mm 12mm}
+    body{font-size:10.5px;background:#fff}
+    header{position:static;backdrop-filter:none;border-bottom:2px solid var(--line2)}
+    .controls,nav,.count,#q,.no-res{display:none!important}
+    .head-inner{padding:0 0 8px}
+    h1{font-size:19px}.sub{font-size:11px}
+    main{padding:0}
+    section{margin-top:14px;page-break-inside:auto}
+    .sec-head{page-break-after:avoid;break-after:avoid}
+    .row{page-break-inside:avoid;break-inside:avoid;gap:12px;padding:7px 4px 7px 12px}
+    .col-head{display:grid}
+    .note{page-break-inside:avoid}
+    nav{display:none}
+    a{color:var(--accent);text-decoration:none}
+    footer{page-break-inside:avoid}
+  }
+</style>
+
+<header>
+  <div class="head-inner">
+    <div class="kicker">
+      <span class="leds"><i class="l-n"></i><i class="l-a"></i><i class="l-d"></i></span>
+      SDAI · Suisse · AEAI / VKF · EN 54
+    </div>
+    <h1>Lexique de la détection incendie <span class="de">— Brandmelde­technik-Glossar</span></h1>
+    <p class="sub">Référence bilingue français ⇄ allemand pour technicien SDAI : normes AEAI, matériel EN 54,
+      transmission d'alarme et concepts Securiton (SecuriFire, SecuriLine, SecuriRAS ASD). Filtre en direct sur les trois langues/colonnes.</p>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Rechercher : détecteur / Melder / ASD / temporisation / boucle…" autocomplete="off">
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main id="main">
+  <div class="no-res" id="noRes">Aucun terme ne correspond — essaie « détecteur », « alarme » ou « SecuriFire ».</div>
+</main>
+
+<footer>
+  <p><b>Cadre normatif.</b> AEAI = Association des établissements cantonaux d'assurance incendie (D : VKF, <i>Vereinigung Kantonaler Feuerversicherungen</i>).
+  Les composants suivent la série <b>SN EN 54</b> ; les installations la <b>directive de protection incendie AEAI 20-15</b> « Installations de détection d'incendie ».
+  Produits Securiton = famille <b>SecuriFire</b> (centrales), <b>SecuriLine</b> (boucle), <b>SecuriRAS ASD / SecuriSens</b> (détection spéciale).</p>
+  <p style="margin-top:8px">Aide-mémoire technicien — vérifie toujours l'édition en vigueur des prescriptions AEAI et la fiche produit / notice de montage Securiton avant intervention.</p>
+</footer>
+
+<script>
+const DATA = [
+ {id:"normes", num:"01", title:"Normes, organismes & documents", de:"Normen & Regelwerk", rows:[
+   ["AEAI <span class='abbr'>ACAI</span>","VKF — <b>Vereinigung Kantonaler Feuerversicherungen</b>","Association des établissements cantonaux d'assurance incendie. Autorité faîtière qui édite les prescriptions de protection incendie applicables dans toute la Suisse.","s-accent"],
+   ["Prescriptions de protection incendie AEAI <span class='abbr'>PPI</span>","<b>VKF-Brandschutzvorschriften</b> (BSV)","Corpus complet : la Norme (NPI) + les Directives (DPI). Force obligatoire dès leur mise en vigueur par l'AICC.","s-accent"],
+   ["Norme de protection incendie <span class='abbr'>NPI</span>","<b>Brandschutznorm</b>","Document faîtier fixant les exigences générales de sécurité incendie des bâtiments.",""],
+   ["Directive de protection incendie <span class='abbr'>DPI</span>","<b>Brandschutzrichtlinie</b> (BSR)","Documents thématiques détaillant la Norme. La <code>20-15</code> régit les installations de détection d'incendie.",""],
+   ["Directive 20-15 « Installations de détection d'incendie »","<b>BSR 20-15 „Brandmeldeanlagen“</b>","Texte de référence du métier : conception, étendue de surveillance, transmission, exploitation, maintenance des SDAI en Suisse.","s-accent"],
+   ["Registre de protection incendie AEAI","<b>VKF-Brandschutzregister</b> / Brandschutzanwendungen","Répertoire officiel des produits reconnus AEAI. Un composant SDAI doit y figurer (n° de reconnaissance) pour être posé.",""],
+   ["Reconnaissance AEAI / Attestation d'utilisation","<b>VKF-Anerkennung</b> / Verwendungszulassung","Homologation d'un produit ou procédé. À distinguer du marquage CE (EN 54) qui, seul, ne suffit pas en Suisse.","s-info"],
+   ["SN EN 54 (série)","<b>SN EN 54</b>","Normes européennes des composants de SDAI : EN 54-2 (centrale), -4 (alimentation), -5/7 (détecteurs chaleur/fumée), -11 (DM), -12 (linéaire optique), -20 (ASD), -25 (radio)…",""],
+   ["Organisme d'inspection / de contrôle","<b>Kontrollstelle / Brandschutzbehörde</b>","Autorité (police du feu, ECA cantonal) qui réceptionne et contrôle l'installation. Établit le rapport de réception.","s-info"],
+   ["Entreprise spécialisée agréée","<b>Fachfirma / VKF-anerkannte Errichterfirma</b>","Installateur au bénéfice de l'agrément AEAI habilité à concevoir, monter et maintenir des SDAI.",""],
+   ["AICC","<b>IKAS / IKV</b>","Autorité intercantonale coordonnant l'application des prescriptions AEAI en Suisse.",""],
+ ]},
+
+ {id:"installation", num:"02", title:"Installation & étendue de surveillance", de:"Anlage & Überwachungsumfang", rows:[
+   ["Installation de détection d'incendie <span class='abbr'>IDI / SDAI</span>","<b>Brandmeldeanlage (BMA)</b>","L'ensemble fonctionnel : centrale + détecteurs + DM + diffuseurs + transmission + alimentation. SDAI = Système de Détection et d'Alarme Incendie.","s-accent"],
+   ["Surveillance totale","<b>Vollüberwachung / Vollschutz</b>","Tous les locaux du bâtiment sont surveillés (sauf exceptions admises : sanitaires, gaines &lt; seuil, etc.).","s-normal"],
+   ["Surveillance partielle","<b>Teilüberwachung / Teilschutz</b>","Seuls certains compartiments/étages définis par le concept sont surveillés.",""],
+   ["Surveillance des voies d'évacuation","<b>Überwachung der Fluchtwege</b>","Détection limitée aux chemins de fuite (corridors, cages d'escalier) pour sécuriser l'évacuation.",""],
+   ["Surveillance d'objet / locale","<b>Objektüberwachung / Einrichtungsschutz</b>","Protection ciblée d'une machine, d'une armoire, d'un objet à risque (souvent par aspiration).",""],
+   ["Concept de protection incendie","<b>Brandschutzkonzept</b>","Document définissant l'étendue, l'organisation d'alarme, les asservissements et l'intervention. Base du dimensionnement du SDAI.","s-info"],
+   ["Compartiment coupe-feu","<b>Brandabschnitt</b>","Volume délimité par des éléments EI (résistants au feu). Structure le découpage en zones de détection.",""],
+   ["Zone de détection","<b>Meldergruppe / Meldebereich</b>","Regroupement logique de détecteurs pointant une surface ≤ limite normative, pour la localisation à la centrale. Voir aussi §04.",""],
+   ["Zone (secteur) d'alarme","<b>Alarmierungsbereich</b>","Découpage servant au déclenchement sélectif des diffuseurs (évacuation par zones).",""],
+   ["Superficie surveillée par détecteur","<b>Überwachungsfläche pro Melder</b>","Surface max. couverte par un point de détection (fonction hauteur du local, type de détecteur, pente de toiture).",""],
+ ]},
+
+ {id:"centrale", num:"03", title:"Centrale de détection (SecuriFire)", de:"Brandmelderzentrale (BMZ)", rows:[
+   ["Centrale de détection d'incendie","<b>Brandmelderzentrale (BMZ)</b> / Brandmeldezentrale","Cerveau du SDAI : acquisition des détecteurs, traitement, signalisation, commande des asservissements et de la transmission. EN 54-2.","s-accent"],
+   ["SecuriFire 500 / 2000 / 3000 <span class='tag securiton'>Securiton</span>","<b>SecuriFire</b>","Gamme de centrales modulaires Securiton. 500 = compacte ; 3000 = modulaire/réseau. Coeur du simulateur SecuriFire Trainer.","s-accent"],
+   ["Face avant / pupitre de commande","<b>Bedienteil / Bedienfeld (MMI)</b>","Interface exploitant : afficheur, LED d'état, touches d'acquittement/arrêt/reset. « MIC » dans l'univers SecuriFire.",""],
+   ["Afficheur / synoptique","<b>Anzeige / Display, Anzeigetableau</b>","Écran présentant l'événement (zone, détecteur, texte en clair). Le tableau synoptique (LED) est complémentaire.",""],
+   ["Unité de commande / carte processeur","<b>Steuereinheit / CPU-Karte</b>","Module de traitement central de la centrale.",""],
+   ["Module de boucle / carte de ligne <span class='abbr'>MIC711</span> <span class='tag securiton'>Securiton</span>","<b>Linienkarte / Loop-Karte</b>","Carte gérant une (ou plusieurs) boucle d'éléments adressables SecuriLine. Réf. exploitée dans le trainer.",""],
+   ["Module entrées/sorties","<b>Ein-/Ausgangsmodul (I/O-Modul)</b>","Interface pour asservissements : contacts, commandes, retours d'état.",""],
+   ["Renvoi / report d'exploitation","<b>Fernanzeige / Paralleltableau</b>","Répétiteur déporté (ex. à l'accueil) reprenant les états de la centrale.","s-info"],
+   ["Réseau de centrales","<b>Zentralenvernetzung / Netzwerk</b>","Mise en réseau de plusieurs BMZ (grands sites) avec échange d'événements et exploitation commune.",""],
+   ["Niveaux d'accès (1 à 4)","<b>Zugriffsebenen (Ebene 1–4)</b>","EN 54 : 1 = public, 2 = exploitant (clé/code), 3 = maintenance, 4 = fabricant. Cadenassage des fonctions.","s-info"],
+   ["Historique / journal des événements","<b>Ereignisspeicher / Logbuch</b>","Mémoire horodatée des alarmes, dérangements, manipulations. Consultable pour diagnostic.",""],
+ ]},
+
+ {id:"boucle", num:"04", title:"Boucle, ligne & adressage", de:"Meldelinie & Adressierung", rows:[
+   ["Boucle adressable <span class='abbr'>SecuriLine</span> <span class='tag securiton'>Securiton</span>","<b>SecuriLine eXt — Ringleitung</b>","Ligne rebouclée (aller-retour à la centrale) portant détecteurs et modules adressables. Continue de fonctionner malgré une coupure grâce à l'alimentation des deux extrémités.","s-accent"],
+   ["Ligne / boucle","<b>Meldelinie / Ringleitung (Loop)</b>","Boucle = câblage rebouclé (résilient) ; ligne en antenne (Stichleitung) = simple, non tolérante au défaut.",""],
+   ["Isolateur de court-circuit","<b>Kurzschluss-Trenner / Leitungstrenner</b>","Composant (souvent intégré au socle/détecteur) qui isole le tronçon en défaut pour préserver le reste de la boucle.","s-derang"],
+   ["Élément adressable","<b>adressierbares Element / Teilnehmer</b>","Tout point de la boucle possédant une adresse propre : détecteur, DM, module, sirène adressable.",""],
+   ["Adresse / adressage","<b>Adresse / Adressierung</b>","Identifiant unique d'un élément sur la boucle, permettant la localisation exacte à la centrale.","s-info"],
+   ["Adressage automatique (auto-adressage)","<b>automatische Adressierung / Einmessung</b>","Attribution/relevé des adresses par la centrale selon la position physique sur la boucle (SecuriLine).",""],
+   ["Ligne de détection conventionnelle","<b>konventionelle Meldergruppe</b>","Technologie ancienne : plusieurs détecteurs non adressés sur une même zone ; localisation à la zone seulement.",""],
+   ["Résistance de fin de ligne","<b>Abschlusswiderstand / Endwiderstand</b>","Résistance terminale surveillant la continuité d'une ligne conventionnelle. Sa disparition = dérangement de ligne.","s-derang"],
+   ["Court-circuit / coupure de ligne","<b>Kurzschluss / Unterbruch (Drahtbruch)</b>","Défauts de ligne signalés en dérangement. La boucle rebouclée y résiste, l'antenne non.","s-derang"],
+ ]},
+
+ {id:"detecteurs", num:"05", title:"Détecteurs automatiques", de:"Automatische Melder", rows:[
+   ["Détecteur automatique d'incendie","<b>automatischer Brandmelder</b>","Élément qui détecte un phénomène du feu (fumée, chaleur, flamme, gaz) sans intervention humaine.","s-accent"],
+   ["Détecteur de fumée optique (diffusion)","<b>optischer Rauchmelder (Streulicht)</b>","Chambre optique : la fumée diffuse la lumière d'une LED vers une photodiode. Le plus courant. EN 54-7.",""],
+   ["Détecteur de fumée à chambre d'ionisation","<b>Ionisationsrauchmelder</b>","Ancienne techno (source radioactive), largement remplacée par l'optique. Sensible aux fumées claires.",""],
+   ["Détecteur de chaleur (thermostatique)","<b>Wärmemelder / Maximalmelder</b>","Alarme au dépassement d'un seuil de température fixe. EN 54-5, classes A1, B, etc.",""],
+   ["Détecteur thermovélocimétrique (différentiel)","<b>Thermodifferentialmelder</b>","Réagit à la vitesse de montée en température (gradient), en plus du seuil maximal.",""],
+   ["Détecteur multicritère / multicapteur <span class='abbr'>MCD</span> <span class='tag securiton'>Securiton</span>","<b>Mehrkriterienmelder (MCD)</b>","Combine fumée optique + chaleur (+ parfois CO/lumière). Algorithme réduisant les fausses alarmes. Gamme SecuriStar / SecuriSmoke.","s-normal"],
+   ["Détecteur de fumée à CO / capteur gaz","<b>CO-Melder / Gassensor</b>","Détecte le monoxyde de carbone issu de la combustion. Souvent intégré au multicritère.",""],
+   ["Socle de détecteur","<b>Meldersockel</b>","Base fixe câblée sur la boucle recevant la tête interchangeable ; peut intégrer isolateur et sirène.",""],
+   ["Indicateur d'action / voyant de report","<b>Parallelanzeige / Reaktionsanzeige</b>","LED déportée signalant quel détecteur (ex. en faux-plafond, en gaine) a déclenché.","s-info"],
+   ["Sensibilité / degré d'encrassement","<b>Empfindlichkeit / Verschmutzungsgrad</b>","Valeur analogique remontée à la centrale ; la dérive d'encrassement génère un préavis de maintenance.","s-derang"],
+   ["Compensation de dérive","<b>Driftkompensation</b>","Réajustement automatique du seuil pour compenser l'encrassement progressif de la chambre.",""],
+ ]},
+
+ {id:"speciaux", num:"06", title:"Détection spéciale (aspiration, linéaire, flamme)", de:"Sondermelder", rows:[
+   ["Détection de fumée par aspiration <span class='abbr'>ASD / DAF</span> <span class='tag securiton'>Securiton</span>","<b>Ansaugrauchmelder (ASD) — SecuriRAS ASD</b>","Un ventilateur aspire l'air ambiant par un réseau de tuyaux/trous d'aspiration vers une chambre de détection haute sensibilité. Détection très précoce. EN 54-20.","s-accent"],
+   ["SecuriSens ASD 535 <span class='tag securiton'>Securiton</span>","<b>SecuriSens ASD 535</b>","Détecteur par aspiration Securiton, jusqu'à plusieurs tubes, classes A/B/C, adapté salles serveurs, gaines, grands volumes.",""],
+   ["Réseau de tubes d'aspiration","<b>Rohrsystem / Ansaugleitung</b>","Tuyauterie percée d'orifices calibrés déterminant la répartition de l'aspiration.",""],
+   ["Trou / orifice d'aspiration","<b>Ansaugöffnung / Ansaugloch</b>","Perçage calibré du tube équivalant à un « point de détection ». Le dimensionnement (débit) est calculé par logiciel.",""],
+   ["Détecteur linéaire de fumée (barrière optique)","<b>linearer Rauchmelder (Rauchansaug-Lichtschranke)</b>","Émetteur/récepteur (ou réflecteur) : l'affaiblissement du faisceau par la fumée = alarme. Grands volumes, halles. EN 54-12.",""],
+   ["Détecteur linéaire de chaleur (câble/sensor) <span class='tag securiton'>Securiton</span>","<b>Linearer Wärmemelder — SecuriSens ADW</b>","Ligne sensible continue (tube pneumatique ADW ou câble) suivant un tracé : tunnels, câbles, convoyeurs, parkings.",""],
+   ["Détecteur de flamme (UV / IR)","<b>Flammenmelder (UV/IR)</b>","Détecte le rayonnement d'une flamme. Très rapide sur feux ouverts (industrie, dépôts). EN 54-10.",""],
+   ["Détecteur de gaz / d'étincelles","<b>Gasmelder / Funkenmelder</b>","Applications process : détection de gaz combustibles ou d'étincelles sur convoyeurs/aspirations.",""],
+ ]},
+
+ {id:"manuel", num:"07", title:"Déclencheurs manuels & signalisation", de:"Handmelder & Signalgeber", rows:[
+   ["Déclencheur manuel <span class='abbr'>DM</span>","<b>Handfeuermelder / Handmelder (Druckknopfmelder)</b>","Boîtier rouge à membrane brisable/poussoir déclenchant l'alarme manuellement. EN 54-11. Placé sur voies de fuite et sorties.","s-accent"],
+   ["Vitre / membrane de protection","<b>Glasscheibe / Schutzelement</b>","Élément à briser (ou à réarmer) devant le poussoir, évitant le déclenchement accidentel.",""],
+   ["Diffuseur sonore / sirène","<b>Signalgeber / Sirene / Hupe</b>","Émet le signal d'évacuation. Le son d'alarme générale suit un motif normalisé (signal continu/modulé). EN 54-3.","s-alarme"],
+   ["Diffuseur lumineux / flash","<b>Blitzleuchte / optischer Signalgeber</b>","Signal visuel (locaux bruyants, malentendants). EN 54-23. Souvent combiné sirène+flash.",""],
+   ["Diffuseur vocal / message parlé","<b>Sprachalarmierung (SAA) / Sprachdurchsage</b>","Système d'alarme vocale (SAV/SAA) diffusant des consignes d'évacuation en clair. EN 54-16/24.",""],
+   ["Signal d'alarme générale","<b>Vollalarm-Signal / Räumungssignal</b>","Motif sonore d'évacuation totale du bâtiment.","s-alarme"],
+   ["Feux / signal d'intervention pompiers","<b>Feuerwehr-Anzeige</b>","Signalisation extérieure guidant les sapeurs-pompiers vers l'accès et l'objet en alarme.",""],
+ ]},
+
+ {id:"organisation", num:"08", title:"Organisation d'alarme & temporisation", de:"Alarmorganisation & Verzögerung", rows:[
+   ["Organisation / concept d'alarme","<b>Alarmorganisation / Alarmierungskonzept</b>","Définit qui est alerté, comment et dans quel ordre (interne, générale, pompiers) selon l'heure et le type d'événement.","s-accent"],
+   ["Alarme interne / restreinte / préalarme","<b>Voralarm / interne Alarmierung</b>","Alerte d'abord le personnel présent, sans évacuation ni transmission immédiate, pour lever le doute.","s-info"],
+   ["Alarme générale (évacuation)","<b>Vollalarm / Hauptalarm</b>","Déclenche tous les diffuseurs pour évacuation. Peut être immédiate ou consécutive à la temporisation.","s-alarme"],
+   ["Temporisation (technique du personnel présent)","<b>Alarmverzögerung / Verzögerungssteuerung</b>","Fonction EN 54-2 à deux temps évitant l'alarme générale et la transmission tant que le personnel lève le doute. Active seulement en présence de personnel.","s-derang"],
+   ["Temporisation T1 — délai d'acquittement","<b>Verzögerungszeit t1 — Quittierzeit</b>","1ᵉʳ délai : le personnel doit <b>acquitter</b> l'alarme à la centrale. Sans acquittement → alarme générale. (ex. réglage 3 min).","s-derang"],
+   ["Temporisation T2 — délai d'investigation","<b>Verzögerungszeit t2 — Erkundungszeit</b>","2ᵉ délai après acquittement pour aller <b>vérifier</b> sur place. Expiration ou 2ᵉ détecteur → alarme générale + transmission. (ex. 5 min).","s-derang"],
+   ["Acquittement","<b>Quittierung</b>","Action de prendre acte d'un événement à la centrale (arrête le buzzer, lance T2). Ne remet pas à zéro.",""],
+   ["Levée de doute / reconnaissance","<b>Erkundung / Verifikation</b>","Vérification humaine sur place pendant T2 pour confirmer ou infirmer le feu.",""],
+   ["Dépendance / coïncidence à deux détecteurs","<b>Zweimelder- / Zweigruppenabhängigkeit</b>","L'alarme n'est confirmée que si 2 détecteurs (ou 2 zones) réagissent : réduit les fausses alarmes avant asservissement lourd (ex. extinction).","s-normal"],
+   ["Mode jour / nuit (présence)","<b>Tag-/Nachtbetrieb (Anwesenheit)</b>","Bascule automatique : temporisation active en présence (jour), alarme directe hors présence (nuit).","s-info"],
+   ["Fausse alarme / alarme intempestive","<b>Fehlalarm / Täuschungsalarm</b>","Déclenchement sans feu réel (poussière, vapeur, défaut). Enjeu majeur : coûts d'intervention pompiers.","s-derang"],
+ ]},
+
+ {id:"transmission", num:"09", title:"Transmission d'alarme", de:"Alarmübertragung", rows:[
+   ["Transmission d'alarme","<b>Alarmübertragung / Alarmweiterleitung</b>","Acheminement automatique de l'alarme (et souvent du dérangement) de la centrale vers un centre de réception habilité.","s-accent"],
+   ["Dispositif / équipement de transmission <span class='abbr'>ETA</span>","<b>Übertragungseinrichtung (ÜE)</b>","Module qui émet l'alarme vers l'extérieur (réseau IP/RTC/GSM). EN 54-21.",""],
+   ["Centre de réception de l'alarme feu","<b>Alarmempfangsstelle / Feuerwehr-Alarmzentrale</b>","Centrale d'engagement (souvent la police/pompiers via n° 118) qui reçoit l'alarme et engage les secours.","s-alarme"],
+   ["Sapeurs-pompiers","<b>Feuerwehr</b>","Destinataire de l'alarme feu. En Suisse, engagement via la centrale 118.",""],
+   ["Transmission du dérangement","<b>Störungsübertragung</b>","Report des dérangements vers un service de maintenance/télésurveillance (souvent voie distincte de l'alarme feu).","s-derang"],
+   ["Ligne / voie de transmission surveillée","<b>überwachte Übertragungsleitung</b>","La liaison est elle-même surveillée : sa coupure génère un dérangement. Redondance fréquente (2 voies).","s-derang"],
+   ["Boîtier à clé pompiers / clé à tube","<b>Feuerwehr-Schlüsseldepot (FSD) / Schlüsselrohr</b>","Coffre sécurisé donnant aux pompiers l'accès au bâtiment sans effraction.",""],
+   ["Tableau de commande pompiers <span class='abbr'>TCP</span>","<b>Feuerwehr-Bedienfeld (FBF)</b>","Interface normalisée à l'entrée pour les pompiers : arrêt sirènes, transmission, reset, test.","s-info"],
+   ["Tableau/afficheur indicateur pompiers <span class='abbr'>TIP</span>","<b>Feuerwehr-Anzeigetableau (FAT)</b>","Report clair de l'événement (zone, détecteur) présenté aux pompiers à leur arrivée.","s-info"],
+   ["Plan d'intervention pompiers","<b>Feuerwehr-Einsatzplan / Laufkarten</b>","Plans et fiches (cartes de cheminement) guidant les secours jusqu'au détecteur déclenché.",""],
+   ["Levée de doute / consigne d'engagement","<b>Interventionskonzept</b>","Procédure convenue avec les pompiers (accès, guidage, priorités) liée au concept d'alarme.",""],
+ ]},
+
+ {id:"asservissements", num:"10", title:"Asservissements & extinction", de:"Steuerungen & Löschanlagen", rows:[
+   ["Asservissement / commande","<b>Steuerung / Ansteuerung (BMA-Steuerung)</b>","Action automatique commandée par la détection : coupures, fermetures, ventilation, ascenseurs, portes.","s-accent"],
+   ["Compartimentage / portes coupe-feu","<b>Brandschutztüren / Feststellanlagen</b>","Les portes maintenues ouvertes (ventouses) sont relâchées sur alarme pour cloisonner le feu.",""],
+   ["Désenfumage / exutoires","<b>Rauch- und Wärmeabzug (RWA) / Entrauchung</b>","Ouverture d'exutoires ou mise en route de ventilateurs pour évacuer fumées et chaleur.",""],
+   ["Rappel des ascenseurs","<b>Aufzugsevakuierung / Brandfallsteuerung Aufzug</b>","Renvoi automatique des ascenseurs au niveau d'évacuation, portes ouvertes.",""],
+   ["Coupure ventilation / CVC","<b>Lüftungsabschaltung (HLK)</b>","Arrêt de la ventilation pour ne pas propager fumée/oxygène.",""],
+   ["Installation d'extinction automatique","<b>automatische Löschanlage</b>","Sprinkler, gaz inerte, aérosol… déclenchée par détection dédiée (coïncidence obligatoire).","s-alarme"],
+   ["Extinction par gaz / inertage","<b>Gaslöschanlage / Inertisierung</b>","Étouffe le feu par gaz (inertes, chimiques). Exige temporisation d'évacuation + dépendance à 2 détecteurs.","s-derang"],
+   ["Sprinkler","<b>Sprinkleranlage</b>","Extinction à eau ; son déclenchement (débit/pression) est reporté à la centrale comme alarme.",""],
+   ["Arrêt / abandon d'extinction","<b>Löschabbruch / Nothalt</b>","Commande d'urgence stoppant la décharge de gaz pendant la temporisation.","s-derang"],
+   ["Contact sec / retour d'état","<b>potentialfreier Kontakt / Rückmeldung</b>","Sortie relais vers un tiers ; entrée confirmant que l'asservissement a bien été exécuté.",""],
+ ]},
+
+ {id:"etats", num:"11", title:"États, dérangements & maintenance", de:"Betriebszustände & Wartung", rows:[
+   ["État normal / veille","<b>Normalzustand / Ruhezustand</b>","Système sain, aucune alarme ni défaut. LED verte de fonctionnement.","s-normal"],
+   ["État d'alarme feu","<b>Feueralarm / Alarmzustand</b>","Un ou plusieurs détecteurs/DM en alarme. Priorité absolue à la centrale.","s-alarme"],
+   ["Dérangement","<b>Störung</b>","Défaut technique (ligne, alimentation, détecteur absent/encrassé, transmission). LED/relais dérangement.","s-derang"],
+   ["Hors service / mise en/hors service (isolement)","<b>Abschaltung / Ausschaltung (Sperrung)</b>","Neutralisation volontaire d'une zone/détecteur (travaux, maintenance) pour éviter fausses alarmes. À tracer et à réactiver !","s-hs"],
+   ["Signal / préavis de maintenance","<b>Wartungsmeldung / Verschmutzungswarnung</b>","Alerte anticipée (encrassement, dérive) avant que le détecteur ne passe en dérangement.","s-derang"],
+   ["Réarmement / remise à zéro","<b>Rückstellung / Reset</b>","Retour à l'état normal après traitement de l'événement (nécessite niveau d'accès 2).",""],
+   ["Test de détecteur / essai","<b>Meldertest / Funktionsprüfung</b>","Vérification individuelle (aérosol de test, source de chaleur, aimant de test).",""],
+   ["Mode test / mode révision","<b>Revisionsbetrieb / Testbetrieb</b>","Mode maintenance : déclenchements non transmis, auto-reset, pour contrôle sans engager les pompiers.","s-hs"],
+   ["Maintenance périodique / contrôle","<b>periodische Wartung / Instandhaltung</b>","Entretien obligatoire (généralement annuel) par entreprise agréée : essais, nettoyage, mesures, rapport.","s-info"],
+   ["Contrat de maintenance","<b>Wartungsvertrag</b>","Engagement contractuel garantissant les contrôles périodiques et la disponibilité du SDAI.",""],
+   ["Rapport de réception / d'essai","<b>Abnahmeprotokoll / Prüfbericht</b>","Document de mise en service et des contrôles, exigé par l'autorité (police du feu / ECA).",""],
+   ["Registre de contrôle / journal","<b>Kontrollbuch / Betriebsbuch</b>","Cahier de bord du SDAI : événements, mises hors service, interventions. À tenir à jour sur site.",""],
+ ]},
+
+ {id:"alimentation", num:"12", title:"Câblage & alimentation", de:"Verkabelung & Energieversorgung", rows:[
+   ["Alimentation de la centrale","<b>Energieversorgung / Netzteil</b>","Bloc d'alimentation surveillé (EN 54-4) : réseau + secours par batteries.","s-accent"],
+   ["Alimentation de secours / batteries","<b>Notstromversorgung / Akkus (Batterie)</b>","Batteries assurant l'autonomie sur coupure secteur (dimensionnées pour veille + alarme selon norme).",""],
+   ["Autonomie","<b>Überbrückungszeit</b>","Durée de fonctionnement sur batterie sans réseau (veille prolongée + phase d'alarme).",""],
+   ["Câble résistant au feu","<b>Funktionserhalt-Kabel (E30/E90)</b>","Câblage maintenant la fonction sous feu pendant 30/90 min pour les liaisons critiques (diffuseurs, transmission).","s-alarme"],
+   ["Câble de détection / bus","<b>Melderleitung / Buskabel</b>","Câble reliant détecteurs et modules à la centrale (souvent paire torsadée, section normalisée).",""],
+   ["Surveillance de ligne","<b>Leitungsüberwachung</b>","Contrôle permanent de la continuité et de l'isolement des câbles ; tout défaut → dérangement.","s-derang"],
+   ["Mise à la terre / blindage","<b>Erdung / Schirmung</b>","Protection CEM ; un défaut de terre est signalé comme dérangement.",""],
+   ["Séparation / pose des câbles","<b>Kabelverlegung / Trennung</b>","Règles de cheminement (distances aux courants forts, chemins de câbles) pour éviter perturbations.",""],
+ ]},
+
+ {id:"securiton", num:"13", title:"Concepts & sigles Securiton", de:"Securiton-Begriffe", rows:[
+   ["Securiton AG <span class='tag securiton'>Securiton</span>","<b>Securiton AG</b>","Fabricant suisse (groupe Securitas) de systèmes de détection incendie et sécurité. Siège à Zollikofen (BE).","s-accent"],
+   ["SecuriFire <span class='tag securiton'>Securiton</span>","<b>SecuriFire</b>","Plateforme modulaire de centrales de détection incendie (500 / 2000 / 3000) et son écosystème logiciel.","s-accent"],
+   ["SecuriLine eXt <span class='tag securiton'>Securiton</span>","<b>SecuriLine eXt</b>","Technologie de boucle adressable Securiton : jusqu'à ~250 éléments, isolateurs intégrés, câblage rebouclé résilient.",""],
+   ["SecuriSens <span class='tag securiton'>Securiton</span>","<b>SecuriSens</b>","Famille de détecteurs spéciaux : ASD (aspiration), ADW (chaleur linéaire), etc.",""],
+   ["SecuriRAS ASD <span class='tag securiton'>Securiton</span>","<b>SecuriRAS ASD</b>","Détecteurs de fumée par aspiration (Rauchansaugsystem) haute sensibilité, série ASD 5xx.",""],
+   ["SecuriStar / SecuriSmoke <span class='tag securiton'>Securiton</span>","<b>SecuriStar / SecuriSmoke</b>","Gammes de détecteurs ponctuels adressables (optique, chaleur, multicritère MCD) pour boucle SecuriLine.",""],
+   ["MCD — détecteur multicritère <span class='tag securiton'>Securiton</span>","<b>Mehrkriterienmelder (MCD)</b>","Détecteur combinant plusieurs capteurs + algorithme anti-fausse-alarme. Voir §05.","s-normal"],
+   ["MIC — face avant / carte SecuriFire <span class='abbr'>MIC711</span> <span class='tag securiton'>Securiton</span>","<b>MIC-Modul / Bedien- & Linienkarte</b>","Modules de la plateforme SecuriFire (commande / ligne). <code>MIC711</code> = référence utilisée dans le SecuriFire Trainer.",""],
+   ["Logiciel de configuration / programmation","<b>Projektierungssoftware / Parametriersoftware</b>","Outil PC de paramétrage de la centrale (zones, textes, asservissements, temporisations).","s-info"],
+   ["Détection très précoce (VESDA-like)","<b>Frühestbranderkennung</b>","Concept de détection au stade pyrolyse via aspiration haute sensibilité (salles techniques, data centers).",""],
+ ]},
+
+ {id:"sono", num:"14", title:"Sonorisation, alarme vocale & évacuation", de:"Sprachalarm & Evakuierung", rows:[
+   ["Système d'alarme vocale <span class='abbr'>SAV / SEV</span>","<b>Sprachalarmanlage (SAA) / Sprachalarmierung</b>","Diffuse des consignes d'évacuation parlées et intelligibles au lieu (ou en plus) d'une simple sirène. Exigé pour de nombreux bâtiments recevant du public. Centrale certifiée EN 54-16.","s-accent"],
+   ["Sonorisation de sécurité (SSS) / ELA","<b>Elektroakustische Anlage (ELA) / Beschallungsanlage</b>","Installation haut-parleurs pouvant assurer à la fois l'alarme vocale de sécurité et les annonces d'exploitation (musique, appels). La fonction sécurité est toujours prioritaire.","s-accent"],
+   ["Équipement central SAV / matrice audio","<b>Sprachalarmzentrale (SAZ) / VACIE</b>","Cœur de la SAV : gère zones de diffusion, messages, priorités et surveillance. EN 54-16.",""],
+   ["Haut-parleur d'évacuation","<b>Lautsprecher (Evakuierungslautsprecher)</b>","Diffuseur vocal certifié EN 54-24 (plafonnier, mural, projecteur de son, colonne).",""],
+   ["Amplificateur de puissance","<b>Leistungsverstärker / Endstufe</b>","Alimente les lignes HP ; prévoir un amplificateur de secours (redondance) qui reprend en cas de défaut.","s-derang"],
+   ["Ligne HP surveillée (A/B)","<b>überwachte Lautsprecherlinie (A/B-Linie)</b>","La ligne haut-parleurs est surveillée en continuité et court-circuit ; le doublage A/B garantit la diffusion même si un brin est coupé.","s-derang"],
+   ["Message d'évacuation préenregistré","<b>Evakuierungsdurchsage / Sprachtext</b>","Annonces normalisées, souvent multilingues, déclenchées automatiquement par la détection.",""],
+   ["Signal d'attention / gong","<b>Aufmerksamkeitssignal / Gong</b>","Précède le message parlé pour capter l'attention avant l'annonce.",""],
+   ["Micro pompier / pupitre d'annonce d'urgence","<b>Feuerwehr-Sprechstelle / Notfallmikrofon</b>","Permet des annonces vocales en direct, avec priorité absolue sur les messages automatiques.","s-info"],
+   ["Intelligibilité de la parole","<b>Sprachverständlichkeit (STI / STIPA)</b>","Critère de réception d'une SAV : la parole doit rester compréhensible (mesure STIPA) même en ambiance bruyante.","s-info"],
+   ["Alarme locale (restreinte)","<b>lokale / interne Alarmierung</b>","Alerte diffusée dans le bâtiment (ou une zone) sans transmission externe immédiate — pour lever le doute. Voir préalarme §08.","s-info"],
+   ["Alarme générale / ordre d'évacuation","<b>Vollalarm / Räumungsalarm</b>","Déclenche l'évacuation totale via diffuseurs sonores/vocaux.","s-alarme"],
+   ["Évacuation phasée / séquentielle","<b>gestufte / phasenweise Räumung</b>","On évacue d'abord la zone sinistrée et les niveaux adjacents, puis le reste — évite la panique et l'engorgement des issues.","s-normal"],
+   ["Évacuation horizontale / verticale","<b>horizontale / vertikale Evakuierung</b>","Vers un compartiment coupe-feu voisin (horizontale) ou vers le niveau de sortie (verticale).",""],
+   ["Zone de diffusion / sonorisation","<b>Beschallungszone / Alarmierungsbereich</b>","Découpage permettant des messages sélectifs par secteur.",""],
+   ["Alerte vs alarme (2 niveaux)","<b>Warnung vs. Alarm</b>","Mise en éveil du personnel (alerte) puis ordre d'évacuation (alarme) — s'articule avec la temporisation §08.","s-derang"],
+ ]},
+
+ {id:"connexes", num:"15", title:"Systèmes connexes & notions transverses", de:"Angrenzende Systeme", rows:[
+   ["Installation de détection de dangers","<b>Gefahrenmeldeanlage (GMA)</b>","Terme générique englobant la détection incendie (BMA), l'intrusion (EMA), le gaz, etc. La BMA en est le sous-ensemble « feu ».","s-accent"],
+   ["BMA vs BMZ (à ne pas confondre)","<b>Brandmeldeanlage vs. Brandmelderzentrale</b>","<b>BMA</b> = toute l'installation (détecteurs, DM, diffuseurs, transmission). <b>BMZ</b> = la centrale seule. Voir §02 et §03.","s-info"],
+   ["Installation de détection d'intrusion","<b>Einbruchmeldeanlage (EMA)</b>","Système anti-intrusion souvent présent sur le même site ; organes et boucles distincts du SDAI — ne pas mélanger.",""],
+   ["Détecteur autonome avertisseur de fumée <span class='abbr'>DAAF</span>","<b>Rauchwarnmelder (RWM)</b>","Appareil autonome à pile pour logements — hors SDAI surveillé par centrale. Ne remplace pas une BMA.","s-info"],
+   ["Gestion technique du bâtiment <span class='abbr'>GTB / GTC</span>","<b>Gebäudeleittechnik (GLT) / Gebäudeautomation</b>","Supervise le bâtiment ; la BMA y renvoie ses états via interface. La sécurité incendie reste pilotée par la BMA, pas par la GTB.",""],
+   ["Interface / passerelle","<b>Schnittstelle / Gateway (BACnet, Modbus, OPC)</b>","Remontée d'états de la BMA vers supervision/GTB. Liaison surveillée, sans commande des fonctions de sécurité critiques.",""],
+   ["Détection de gaz / CO (sécurité)","<b>Gaswarnanlage (GWA) / CO-Warnanlage</b>","Surveille gaz combustibles ou CO (parkings) ; peut asservir la ventilation. Distincte de la détection incendie.",""],
+   ["Éclairage de sécurité / signalisation de secours","<b>Sicherheitsbeleuchtung / Fluchtwegkennzeichnung</b>","Éclairage et pictos d'évacuation, coordonnés au scénario d'alarme mais système indépendant.",""],
+   ["Alimentation sans interruption <span class='abbr'>ASI</span>","<b>Unterbrechungsfreie Stromversorgung (USV)</b>","Onduleur alimentant les périphériques (SAV, GTB) ; la BMA a sa propre alimentation de secours EN 54-4.",""],
+ ]},
+
+ {id:"cat-base", num:"16", title:"Catalogue Securiton — Centrales, boucle & détecteurs", de:"Zentralen · Loop · Melder",
+  cols:["Produit / réf.","Fonction","À savoir"],
+  note:"Portefeuille vérifié sur securiton.de / .ch (2024–2026). Références en gras = confirmées ; « niveau famille » = sous-références à préciser. <b>Avant commande/pose, recoupe toujours avec le product finder et la liste de prix Securiton en vigueur</b> + la fiche produit de la version installée (les suffixes évoluent).",
+  rows:[
+   ["<b>SecuriFire 500</b> <span class='abbr'>FCP 500</span> <span class='tag securiton'>Securiton</span>","Centrale compacte, entrée de gamme","1 boucle SecuriLine eXt. Hôtels, commerces, résidentiel. Bon rapport perf/prix.",""],
+   ["<b>SecuriFire 1000</b> <span class='abbr'>FCP 1000</span> <span class='tag securiton'>Securiton</span>","Centrale autonome, petites/moyennes entités","Stand-alone haut de gamme, sans mise en réseau.",""],
+   ["<b>SecuriFire 2000</b> <span class='abbr'>FCP 2000</span> <span class='tag securiton'>Securiton</span>","Centrale moyennes/grandes entités","Extensible, réseau. Hôpitaux, centres commerciaux, grands bâtiments.",""],
+   ["<b>SecuriFire 3000</b> <span class='abbr'>FCP 3000</span> <span class='tag securiton'>Securiton</span>","Vaisseau amiral <b>redondant</b>","Tous composants dupliqués (µP → OS) : bascule sans coupure si le système actif tombe. Sites critiques, tunnels, industrie.","s-accent"],
+   ["<b>Spidernet</b> <span class='tag securiton'>Securiton</span>","Technologie de mise en réseau des centrales","Topologie maillée résiliente : l'événement remonte même après coupure d'un tronçon.",""],
+   ["<b>SecuriLine eXtended (eXt)</b> <span class='tag securiton'>Securiton</span>","Boucle adressable (~250 éléments)","<b>Isolateurs de court-circuit intégrés</b> aux détecteurs/socles → pas de modules isolateurs séparés. Rebouclée = résiste coupure + court-circuit.","s-normal"],
+   ["<b>Config over Line</b> <span class='tag securiton'>Securiton</span>","Config / mise en service des détecteurs spéciaux <b>via la boucle</b>","Paramétrer un SecuriRAS ASD ou un ADW depuis la centrale, sans se déplacer au boîtier. Gros gain SAV.","s-info"],
+   ["<b>SecuriStar MCD 573X</b> <span class='tag securiton'>Securiton</span>","Détecteur ponctuel <b>multicritère</b> fumée + chaleur","Couvants, incandescents ET feux ouverts. Techno <b>Cubus</b> : auto-nivellement de la sensibilité (anti-fausses-alarmes). Isolateur intégré, 2 niveaux de préalarme.","s-normal"],
+   ["<b>SecuriStar MCD 573X-SCT</b> <span class='tag securiton'>Securiton</span>","Multicritère + <b>sirène intégrée</b>","Détection + alarme sonore dans le même boîtier (évacuation locale sans diffuseur séparé).",""],
+   ["<b>SecuriStar MCD 573X-SPCT</b> <span class='tag securiton'>Securiton</span>","Multicritère + <b>message vocal</b>","Consignes vocales d'évacuation en 4 langues.",""],
+   ["<b>SecuriStar CCD 573X</b> <span class='tag securiton'>Securiton</span>","Multicritère + <b>capteur CO</b> (monoxyde)","Détecte incendie ET protège du risque d'asphyxie. Durée de vie capteur jusqu'à ~8 ans.",""],
+   ["<b>Genius Plus X</b> <span class='tag securiton'>Securiton</span>","Détecteur ponctuel autonome (µcontrôleur)","Auto-surveillance permanente + évaluation d'encrassement.",""],
+   ["<b>LKM 593X</b> <span class='tag securiton'>Securiton</span>","Détecteur de fumée <b>de gaine de ventilation</b>","Prélève l'air du conduit ; sert souvent d'asservissement coupure CVC.",""],
+   ["<b>MCP 545X</b> <span class='tag securiton'>Securiton</span>","<b>Déclencheur manuel</b> adressable (Handfeuermelder)","Alarme par action humaine sur voies de fuite/sorties. EN 54-11.","s-alarme"],
+   ["<b>BX-IOM</b> <span class='tag securiton'>Securiton</span>","Module <b>entrées/sorties</b> sur boucle","Asservissements : contacts secs, commandes, retours d'état.",""],
+   ["Sirènes / flashs adressables <span class='tag securiton'>Securiton</span>","Diffusion d'alarme sonore et lumineuse","Alimentés/pilotés par la boucle. EN 54-3 / 54-23. <i>(niveau famille — réf. détaillées sur la liste de prix)</i>",""],
+   ["Socles détecteurs <span class='tag securiton'>Securiton</span>","Base câblée interchangeable","Peuvent intégrer isolateur et/ou sirène de socle. <i>(niveau famille)</i>",""],
+  ]},
+
+ {id:"cat-special", num:"17", title:"Catalogue Securiton — Détection spéciale & logiciels", de:"Sondermelder · Software",
+  cols:["Produit / réf.","Fonction","À savoir"],
+  rows:[
+   ["<b>SecuriRAS ASD 535</b> <span class='tag securiton'>Securiton</span>","Détecteur par <b>aspiration</b> haut de gamme (EN 54-20)","Jusqu'à <b>5 600 m²</b>, tube jusqu'à <b>400 m / 120 orifices</b>, mono ou bi-capteur. Milieux rudes : congélation, zones Ex, forte pollution.","s-accent"],
+   ["<b>SecuriRAS ASD 532</b> <span class='tag securiton'>Securiton</span>","Détecteur par <b>aspiration</b> compact (EN 54-20)","Tube jusqu'à <b>120 m</b>, −20 à +60 °C. Gaines d'ascenseur, cellules, salles blanches, labos, baies serveurs, télécom.",""],
+   ["<b>SecuriSmoke ASD 2000</b> <span class='tag securiton'>Securiton</span>","Aspiration détection très précoce, grandes portées","Longues distances (grands volumes), plage thermique large. Détection au stade pyrolyse.",""],
+   ["<b>SecuriHeat ADW 535</b> <span class='tag securiton'>Securiton</span>","Détecteur <b>linéaire de chaleur</b> à tube sensible (EN 54-22)","Suit un tracé. Tunnels, chimie, pétrole/gaz. Robuste en ambiance sévère.",""],
+   ["<b>SecuriHeat LIST</b> <span class='tag securiton'>Securiton</span>","Détection linéaire de chaleur à <b>seuils par zone</b> (EN 54-22)","Fibre/câble sensible longues distances ; localisation par zone. Tunnels, convoyeurs, câbles HT.",""],
+   ["<b>SecuriBeam ILIA</b> (S/E · S/R · DUST) <span class='tag securiton'>Securiton</span>","<b>Barrière optique linéaire</b> IR (EN 54-12)","Émetteur/récepteur S/E (10–200 m) ou émetteur/réflecteur S/R (10–150 m) ; version <b>DUST</b> pour poussière/vapeur.",""],
+   ["<b>SecuriBeam BSD</b> <span class='tag securiton'>Securiton</span>","Détecteur linéaire de fumée (variante)","Alternative à ILIA pour grands volumes. EN 54-12.",""],
+   ["<b>SecuriHeat d-LIST / LIST</b> <span class='tag securiton'>Securiton</span>","Câble à capteurs de chaleur <b>adressable</b> (EN 54-22)","Distances entre capteurs variables, ramifications possibles, capteurs de température individuels. Réaction rapide.",""],
+   ["<b>DF1101-Ex</b> <span class='tag securiton'>Securiton</span>","Détecteur de <b>flamme</b> IR <b>ATEX</b> (zones Ex 1 & 2)","Feux de liquides/gaz sans fumée + feux ouverts fumigènes ; intérieur & extérieur.",""],
+   ["<b>FDF221-9</b> <span class='tag securiton'>Securiton</span>","Détecteur de <b>flamme</b> IR (intérieur simple)","Feux de liquides/gaz sans fumée + feux ouverts. EN 54-10 (cl. 1+2), algorithmes anti-leurre.",""],
+   ["<b>MMD 130 Ex-i</b> <span class='tag securiton'>Securiton</span>","Détecteur fumée/chaleur à <b>sécurité intrinsèque</b>","Zones Ex 1, 2 et 22. Raccordé via module de dérivation (cf. BX-AIM §19).",""],
+   ["<b>SecuriAir</b> <span class='tag securiton'>Securiton</span>","Système de détection incendie <b>radio</b> (sans fil)","Bâtiments historiques, musées, églises, bibliothèques. Via passerelle <b>BX-WGW</b> (≤ 30 détecteurs/passerelle, cf. §19).",""],
+   ["<b>SecuriFire Expert</b> <span class='tag securiton'>Securiton</span>","Logiciel d'ingénierie / <b>paramétrage</b> de la centrale","Projection zones, textes, asservissements, temporisations.","s-info"],
+   ["<b>Securiton Remote</b> <span class='tag securiton'>Securiton</span>","Application de <b>supervision / gestion à distance</b>","Télédiagnostic, exploitation déportée du SDAI.","s-info"],
+  ]},
+
+ {id:"cat-cartes", num:"18", title:"SecuriFire — Cartes internes & architecture du rack", de:"Baugruppen & Rack",
+  cols:["Élément / réf.","Fonction","À savoir"],
+  note:"Architecture confirmée sur la fiche produit <b>SecuriFire FCP 3000</b>. Le châssis (Baugruppenträger) reçoit jusqu'à <b>8 tiroirs périphériques</b> (réseau, boucle, modernisation) + <b>3 tiroirs relais</b> (230 V / 24 V). Les désignations d'article exactes des cartes relais/E-S internes figurent dans le catalogue d'appareils de SecuriFire Studio.",
+  rows:[
+   ["<b>Baugruppenträger</b> (rack / châssis) <span class='tag securiton'>Securiton</span>","Bâti recevant les cartes de la centrale","Boîtier métal (blindage CEM). FCP 3000 : 8 tiroirs périphériques + 3 tiroirs relais.","s-info"],
+   ["<b>MIC 11</b> / SecuriFire MIC (Bedienfeld) <span class='abbr'>MIC711</span> <span class='tag securiton'>Securiton</span>","<b>Face avant</b> d'exploitation & d'affichage multilingue","Intégrée en porte ou déportée ; &gt; 20 langues ; journal 10 000 événements onboard. (réf. du SecuriFire Trainer)","s-accent"],
+   ["<b>VirtualMIC</b> / SecuriWAN <span class='tag securiton'>Securiton</span>","Face avant <b>virtuelle</b> (PC/écran) via Ethernet","Exploitation & affichage déportés, indépendants du lieu.",""],
+   ["<b>MMI</b> / EPI (appareils externes) <span class='tag securiton'>Securiton</span>","Périphériques de commande/affichage externes","Découpes prévues dans les versions de base (p. ex. SCP3040A/3050A).",""],
+   ["<b>B8-PSU</b> (Netzgerät) <span class='tag securiton'>Securiton</span>","<b>Alimentation interne</b> 7 A","Sorties 3,3 V / 5 V / 27 V ; 5 sorties fusibles séparées ; surveillance des accus pilotée par l'unité centrale.","s-derang"],
+   ["Accus de secours <span class='tag securiton'>Securiton</span>","<b>Batteries</b> 12 V (2 en série), jusqu'à 45 Ah","En fond de boîtier ; charge/décharge surveillée ; maintiennent la BMA sur coupure secteur (EN 54-4).",""],
+   ["Tiroir périphérique — <b>Réseau</b> (SecuriLan) <span class='tag securiton'>Securiton</span>","Carte de mise en réseau des centrales","RS 485 / fibre optique (LWL) / TCP-IP.",""],
+   ["Tiroir périphérique — <b>SecuriLine eXtended</b> <span class='tag securiton'>Securiton</span>","<b>Carte de boucle</b> (loop driver)","Pilote 1 boucle. Jusqu'à 16 boucles/centrale, 250 éléments, 3500 m. Isolateur EN 54-17.",""],
+   ["Tiroir périphérique — <b>Modernisation</b> <span class='tag securiton'>Securiton</span>","Carte d'intégration d'anciens détecteurs","Rétrocompatibilité jusqu'à la série SecuriStar <code>SSD 531</code>.",""],
+   ["Tiroirs <b>relais</b> internes — REL (230 V / 24 V) <span class='abbr'>REL8/10/16</span> <span class='tag securiton'>Securiton</span>","<b>Cartes relais</b> de la centrale","3 emplacements. Variantes selon le nombre de relais (p. ex. REL8 / REL10 / REL16) et la tension. Réf. exacte = catalogue d'appareils.","s-normal"],
+   ["Carte E/S interne <span class='abbr'>OIM</span> <span class='tag securiton'>Securiton</span>","Entrées/sorties au niveau centrale","La majorité des E/S déportées passe par les modules de boucle <b>BX-</b> (cf. §19). Réf. interne exacte à confirmer sur ton catalogue.","s-info"],
+   ["Carte interne <span class='abbr'>BAF</span> <span class='tag securiton'>Securiton</span>","(désignation à confirmer)","Je n'ai pas trouvé « BAF » dans la doc publique — dis-moi la fonction que tu lui connais (renvoi ? alim aux. ? interface pompiers ?) et je l'intègre précisément.","s-derang"],
+   ["Bus d'appareils / MMI-Bus <span class='tag securiton'>Securiton</span>","Liaison face avant ↔ centrale ↔ périphériques","Gerätebus externe pour renvois/afficheurs déportés.",""],
+   ["<b>SecuriLan</b> (via SpiderNet) <span class='tag securiton'>Securiton</span>","Réseau jusqu'à <b>16 centrales</b> / 31 faces avant externes","RS 485 (1,2 km) · multimode 2 km · singlemode 10 km. Topologie libre maillée, résiliente.",""],
+  ]},
+
+ {id:"cat-loop", num:"19", title:"SecuriLine eXtended — modules de boucle (BX-…)", de:"Loop-Module BX",
+  cols:["Réf.","Fonction (E/S)","À savoir"],
+  note:"Famille <b>BX-</b> confirmée sur la « Vue d'ensemble SecuriLine eXtended » (Securiton, 10.22). Boucle : jusqu'à <b>250 éléments / 3500 m</b>, <b>isolateur de court-circuit intégré à chaque participant</b> (EN 54-17), compatible avant/arrière. Sorties relais « bistables » = à position <b>Fail-Safe programmable</b>.",
+  rows:[
+   ["<b>BX-I2</b> <span class='tag securiton'>Securiton</span>","1 entrée surveillée (contact sans potentiel) + 1 entrée optocoupleur","L'entrée optocoupleur surveille une tension externe.",""],
+   ["<b>BX-O1</b> <span class='tag securiton'>Securiton</span>","1 sortie relais bistable sans potentiel","Position Fail-Safe programmable.",""],
+   ["<b>BX-OI3</b> <span class='tag securiton'>Securiton</span>","1 sortie relais + 2 entrées surveillées + 1 entrée optocoupleur","Le module E/S mixte le plus polyvalent de la boucle.","s-normal"],
+   ["<b>BX-O2I4 / BX-O2I4-HP</b> <span class='tag securiton'>Securiton</span>","2 sorties relais bistables + 4 entrées surveillées","Idéal <b>commandes incendie</b> (clapets coupe-feu). <b>-HP</b> = version puissance.",""],
+   ["<b>BX-IOM</b> <span class='tag securiton'>Securiton</span>","1 sortie surveillée + 1 entrée surveillée","Alimentation externe <b>obligatoire</b>.",""],
+   ["<b>BX-IM4</b> <span class='tag securiton'>Securiton</span>","4 entrées surveillées (contacts sans potentiel)","Interrogation d'états multiples.",""],
+   ["<b>BX-REL4</b> <span class='tag securiton'>Securiton</span>","4 sorties relais bistables sans potentiel","Fail-Safe programmable. Attention : module de <b>boucle</b>, distinct des tiroirs relais internes (§18).",""],
+   ["<b>BX-MDI8</b> <span class='tag securiton'>Securiton</span>","Jusqu'à 8 lignes de dérivation (groupes détecteurs OU entrées surveillées)","Ex. interface d'extinction VdS. Alim externe (redondante possible) obligatoire.","s-info"],
+   ["<b>BX-AIM</b> <span class='tag securiton'>Securiton</span>","Dérivation DC pour groupes à <b>sécurité intrinsèque</b> ou adressables collectivement","Option : entrée surveillée. Sert au raccordement des détecteurs Ex (cf. MMD 130 Ex-i §17).",""],
+   ["<b>BX-SBL</b> <span class='tag securiton'>Securiton</span>","<b>Sirène de socle</b> adressable (blanc/rouge)","Ton & volume réglables. Signalisation acoustique intérieure. EN 54-3.","s-alarme"],
+   ["<b>BX-SOL</b> <span class='tag securiton'>Securiton</span>","<b>Sirène Loop</b> adressable (blanc/rouge)","Ton & volume réglables (montage indépendant).","s-alarme"],
+   ["<b>BX-FOL</b> <span class='tag securiton'>Securiton</span>","<b>Lampe éclair (flash)</b> Loop adressable","Taux de flash réglable. EN 54-23.",""],
+   ["<b>Sonos</b> (générateur de signaux) <span class='tag securiton'>Securiton</span>","Sirène / flash mur ou plafond","Optique ou optique+acoustique. Fréquence, volume, tonalité par commutateur DIP. EN 54-3 / 54-23.",""],
+   ["<b>BX-MDH</b> <span class='tag securiton'>Securiton</span>","<b>Aimant de maintien</b> de porte coupe-feu","Relâche la porte automatiquement sur alarme.",""],
+   ["<b>BX-WGW</b> <span class='tag securiton'>Securiton</span>","<b>Passerelle radio</b> (Wireless Gateway) SecuriAir","Interface centrale ↔ détecteurs radio ; jusqu'à 30 détecteurs radio/passerelle.",""],
+   ["<b>BX-ESL</b> <span class='tag securiton'>Securiton</span>","Interrupteur de <b>fin de course</b> (sprinkler / dispositifs de blocage)","Barrière optique mesurant le mouvement d'un poussoir.",""],
+   ["<b>SDI 82X</b> <span class='tag securiton'>Securiton</span>","Module d'<b>adressage</b> pour détecteur/contact sans adresse propre","Donne une adresse boucle à un organe conventionnel.",""],
+   ["<b>SCU BX</b> <span class='tag securiton'>Securiton</span>","Module de <b>dérivation</b> pour ligne de dérivation adressable","SecuriLine / SecuriLine eXtended.",""],
+   ["<b>WT711</b> <span class='tag securiton'>Securiton</span>","Bannière d'avertissement (plaques signalétiques)","Signalétique associée aux secteurs (extinction, etc.).",""],
+  ]},
+
+ {id:"cat-extinction", num:"20", title:"Extinction & sprinkler — organes adressables", de:"Löschung & Sprinkler",
+  cols:["Réf.","Fonction","À savoir"],
+  note:"Le SecuriFire 3000 est homologué comme <b>centrale de commande d'extinction multi-secteurs (EN 12094-1)</b> — combinée ou électrique pure. L'assistant extinction de SecuriFire Studio guide le paramétrage (cf. §21).",
+  rows:[
+   ["<b>MCP 535X-5</b> <span class='tag securiton'>Securiton</span>","<b>Déclencheur manuel</b> d'extinction gaz","Déclenchement d'une extinction à agent gazeux. EN 12094.","s-alarme"],
+   ["<b>MCP 535X-15</b> <span class='tag securiton'>Securiton</span>","Déclencheur manuel de <b>réinjection</b> d'agent gazeux","EN 12094.","s-alarme"],
+   ["<b>MCP 535X-7</b> <span class='tag securiton'>Securiton</span>","<b>Bouton d'ARRÊT</b> d'extinction","Interrompt le processus (EN 12094-3). Ne s'encliquette pas à l'appui (retour ressort).","s-derang"],
+   ["<b>ECM 712</b> <span class='tag securiton'>Securiton</span>","Module d'<b>affichage & commande</b> d'un secteur d'extinction","Visualise et pilote un secteur d'extinction depuis un point local.","s-info"],
+   ["<b>SPB 563</b> <span class='tag securiton'>Securiton</span>","<b>Boîtier de contrôle sprinkler</b> adressable","Lien installation sprinkler ↔ centrale : états de fonctionnement + mode test efficace.",""],
+   ["Interface d'extinction VdS <span class='tag securiton'>Securiton</span>","Raccordement normalisé d'une extinction tierce","Réalisée via <b>BX-MDI8</b> (groupes/entrées surveillées), cf. §19.",""],
+   ["<b>MCP3A / WCP3A</b> <span class='tag securiton'>Securiton</span>","Déclencheurs manuels <b>Ex</b> (IP24D / IP67)","Toutes zones Ex. Presque toutes couleurs RAL sur demande.",""],
+  ]},
+
+ {id:"studio", num:"21", title:"SecuriFire Studio — programmation, critères & logique", de:"Studio · Kriterien · Logik",
+  cols:["Terme (DE)","Rôle","À savoir"],
+  note:"Logique de configuration confirmée sur le prospectus SecuriFire. Deux repères sont mon <b>interprétation</b> (signalés) : dis-moi si « AD » désigne autre chose dans ton Studio et je corrige.",
+  rows:[
+   ["<b>SecuriFire Studio</b> <span class='tag securiton'>Securiton</span>","Logiciel de projection / paramétrage / mise en service","Guide pas à pas ; une seule interface de la planification à la maintenance.","s-accent"],
+   ["Critère — <b>Kriterium</b>","Condition élémentaire déclenchant une action","Ex. groupe en alarme, détecteur, entrée, plage horaire, critère fumée/chaleur.",""],
+   ["Critère de détection — <b>Rauch-/Temperaturkriterium</b>","Choix du sous-critère du détecteur (fumée, chaleur, CO)","Commutable <b>jour/nuit</b> par critère individuel → réduit les fausses alarmes (cuisines, ateliers…).",""],
+   ["Dépendance — <b>AD (Abhängigkeit)</b>","Critère combinant plusieurs déclencheurs (coïncidence)","P. ex. dépendance à 2 détecteurs / 2 groupes avant asservissement lourd. <i>(interprétation — à confirmer)</i>","s-info"],
+   ["Verrouillage <b>booléen</b> — boolesche Verknüpfung","Combinaison <b>ET / OU / NON</b> de critères","Construit des conditions complexes à partir de critères simples.",""],
+   ["<b>Macro</b> — Makro","Bloc logique <b>réutilisable</b>","Encapsule une logique récurrente pour la réappliquer sans la reconstruire.","s-normal"],
+   ["Asservissement — <b>Brandfallsteuerung</b>","Action commandée (sortie / relais / module)","Exécutée quand le(s) critère(s) associé(s) deviennent vrais.",""],
+   ["Matrice cause/effet — <b>Brandfallmatrix</b>","Tableau critères × asservissements","Exportable en formats Office pour vue d'ensemble, même sur grandes installations.","s-normal"],
+   ["Critère de <b>transmission</b> — Übertragungskriterium","Condition déclenchant la transmission d'alarme (AÜ)","Sépare ce qui part aux pompiers de la simple alarme interne / préalarme.","s-alarme"],
+   ["Assistant extinction — <b>Löschassistent</b>","Aide guidée au paramétrage d'une extinction","Gère temporisations, dépendances et exigences EN 12094.",""],
+   ["<b>Wizards</b> (Hochrüsten)","Convertisseurs de config vers des types plus récents","Modernisation d'une centrale/carte/détecteur sans perdre réglages ni éléments.",""],
+   ["<b>SecuriFire Scan</b> <span class='tag securiton'>Securiton</span>","App mobile d'attribution des détecteurs","N° de groupe/détecteur attribués au montage → affectation auto dans Studio.",""],
+   ["Objets <b>BIM</b>","Bibliothèque BIM des produits SecuriFire","Pour la maquette numérique du bâtiment (Building Information Modeling).",""],
+   ["<b>Config over Line</b> <span class='tag securiton'>Securiton</span>","Paramétrage des détecteurs spéciaux via la boucle","ASD/ADW configurés depuis la centrale (ou Securiton Remote), sans laptop sur site.","s-info"],
+  ]},
+
+ {id:"commissioning", num:"22", title:"Mise en service & maintenance — outils SecuriFire", de:"Inbetriebnahme & Wartung",
+  cols:["Fonction / outil","Rôle","À savoir"],
+  note:"Fonctions de test/maintenance propres au SecuriFire, confirmées sur le prospectus. Très utiles pour le contrôle périodique AEAI (cf. §11).",
+  rows:[
+   ["Stimulation de détecteur — <b>Melderstimulation</b> / SystemCheck <span class='tag securiton'>Securiton</span>","Test auto de chaque détecteur du ring (après modif logicielle)","Vérifie la transmission <b>bidirectionnelle</b> ET la mesure (parcours réel contrôleur ↔ capteur).",""],
+   ["<b>Révision guidée</b> — Geführte Revision <span class='tag securiton'>Securiton</span>","Contrôle complet d'une boucle, détecteur par détecteur","La LED alarme clignote jusqu'à validation au gaz de test → aucun détecteur oublié ; contrôle topologie + adressage.","s-normal"],
+   ["<b>Contrôle par signature</b> — Signaturprüfung <span class='tag securiton'>Securiton</span>","Essai « réel » au gaz <b>en plein fonctionnement</b>","Déclenche l'alarme + tous les asservissements + affichages ; feedback visuel LED. Applicable au critère fumée ou chaleur.","s-alarme"],
+   ["« <b>Sécuriser les sorties</b> » — Ausgänge sichern <span class='tag securiton'>Securiton</span>","Maintenance sans perturber l'exploitation","Asservissements pilotés <b>virtuellement</b> + journalisés ; seul l'organe final n'est pas commandé. Affiché comme dérangement pour ne pas oublier de réactiver.","s-hs"],
+   ["Maintenance <b>prédictive</b> <span class='tag securiton'>Securiton</span>","Calcul du moment de remplacement du détecteur","Lecture état + encrassement + régulation → remplacement avant fausse alarme.","s-derang"],
+   ["<b>Securiton Remote</b> <span class='tag securiton'>Securiton</span>","Support & exploitation à distance","Diagnostic, reprogrammation (si admis) et test à distance ; réduit les déplacements.","s-info"],
+   ["Journal — <b>Ereignisspeicher</b>","Mémoire onboard 10 000 événements horodatés","Historique alarmes/dérangements/manipulations pour diagnostic.",""],
+  ]},
+];
+
+// ---------- Rendu ----------
+const main = document.getElementById('main');
+const nav  = document.getElementById('nav');
+const noRes= document.getElementById('noRes');
+const frag = document.createDocumentFragment();
+let TOTAL = 0;
+
+// Menu déroulant (affiché sur mobile) : jump direct sans défiler la barre
+const jump=document.createElement('select');jump.className='jump';
+jump.setAttribute('aria-label','Aller au chapitre');
+const opt0=document.createElement('option');opt0.value='';opt0.textContent='☰  Aller au chapitre…';
+jump.appendChild(opt0);
+jump.addEventListener('change',()=>{
+  const el=document.getElementById(jump.value);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  jump.selectedIndex=0;
+});
+nav.appendChild(jump);
+
+DATA.forEach(sec=>{
+  const a=document.createElement('a');a.href='#'+sec.id;a.textContent=sec.num+' · '+sec.title;nav.appendChild(a);
+  const o=document.createElement('option');o.value=sec.id;o.textContent=sec.num+' · '+sec.title;jump.appendChild(o);
+  const s=document.createElement('section');s.id=sec.id;
+  if(sec.cols) s.classList.add('cat');
+  const cols=sec.cols||['Français','Deutsch','Description technique'];
+  if(sec.cols) s.style.setProperty('--l2', JSON.stringify(cols[1].toUpperCase()));
+  const noteHtml=sec.note?`<div class="note acc">${sec.note}</div>`:'';
+  s.innerHTML=`<div class="sec-head"><span class="sec-num">${sec.num}</span><h2>${sec.title}</h2><span class="de-h">${sec.de}</span></div>${noteHtml}
+    <div class="col-head"><span>${cols[0]}</span><span>${cols[1]}</span><span>${cols[2]}</span></div>`;
+  const wrap=document.createElement('div');wrap.className='rows';
+  sec.rows.forEach(r=>{
+    TOTAL++;
+    const div=document.createElement('div');div.className='row '+(r[3]||'');
+    div.innerHTML=`<div class="fr">${r[0]}</div><div class="de">${r[1]}</div><div class="desc">${r[2]}</div>`;
+    div.dataset.text=(div.textContent||'').toLowerCase();
+    wrap.appendChild(div);
+  });
+  s.appendChild(wrap);frag.appendChild(s);
+});
+main.appendChild(frag);
+
+// ---------- Recherche live ----------
+const q=document.getElementById('q');
+const count=document.getElementById('count');
+const rows=[...document.querySelectorAll('.row')];
+const sections=[...document.querySelectorAll('section')];
+function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function update(){
+  const term=q.value.trim().toLowerCase();
+  let shown=0;
+  rows.forEach(r=>{
+    const hit = !term || r.dataset.text.includes(term);
+    r.style.display = hit ? '' : 'none';
+    if(hit) shown++;
+  });
+  sections.forEach(s=>{
+    const any=[...s.querySelectorAll('.row')].some(r=>r.style.display!=='none');
+    s.style.display=any?'':'none';
+  });
+  noRes.style.display = shown? 'none':'block';
+  count.textContent = term ? shown+' / '+TOTAL+' termes' : TOTAL+' termes · '+DATA.length+' chapitres';
+}
+q.addEventListener('input',update);
+update();
+</script>
